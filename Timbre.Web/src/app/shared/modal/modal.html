@@ -1,0 +1,40 @@
+@if (abierto) {
+
+  <div
+    class="modal-backdrop"
+    (click)="cerrar()">
+
+    <section
+      class="modal-panel"
+      [style.max-width]="ancho"
+      (click)="detenerPropagacion($event)">
+
+      <header class="modal-header">
+
+        <h2>
+          {{ titulo }}
+        </h2>
+
+        <button
+          type="button"
+          class="modal-close"
+          aria-label="Cerrar"
+          (click)="cerrar()">
+
+          ×
+
+        </button>
+
+      </header>
+
+      <div class="modal-body">
+
+        <ng-content></ng-content>
+
+      </div>
+
+    </section>
+
+  </div>
+
+}

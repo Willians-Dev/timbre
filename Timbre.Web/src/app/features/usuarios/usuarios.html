@@ -1,0 +1,741 @@
+<section class="page">
+
+  <!-- ===================================================
+       HEADER
+  ==================================================== -->
+  <header class="page-header">
+
+    <div>
+
+      <span class="page-eyebrow">
+        SEGURIDAD
+      </span>
+
+      <h1>
+        Usuarios
+      </h1>
+
+      <p>
+        Administración de cuentas de acceso y roles del sistema.
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="btn-primary"
+      (click)="nuevoUsuario()">
+
+      <span class="button-plus">
+        +
+      </span>
+
+      Nuevo usuario
+
+    </button>
+
+  </header>
+
+
+  <!-- ===================================================
+       LISTADO
+  ==================================================== -->
+  <section class="card">
+
+    <div class="toolbar">
+
+      <div class="search-box">
+
+        <span class="search-icon">
+          ⌕
+        </span>
+
+        <input
+          type="search"
+          [ngModel]="filtro()"
+          (ngModelChange)="cambiarFiltro($event)"
+          placeholder="Buscar por empleado, usuario o rol"
+          aria-label="Buscar usuarios">
+
+      </div>
+
+
+      <button
+        type="button"
+        class="btn-secondary"
+        [disabled]="cargando()"
+        (click)="cargarUsuarios()">
+
+        @if (cargando()) {
+          Actualizando...
+        }
+        @else {
+          Actualizar
+        }
+
+      </button>
+
+    </div>
+
+
+    @if (cargando()) {
+
+      <div class="state-container">
+
+        <div class="spinner"></div>
+
+        <p>
+          Consultando usuarios...
+        </p>
+
+      </div>
+
+    }
+    @else if (
+      usuariosFiltrados().length === 0
+    ) {
+
+      <div class="state-container">
+
+        <div class="empty-icon">
+          👤
+        </div>
+
+        <h3>
+          No se encontraron usuarios
+        </h3>
+
+        <p>
+          No existen cuentas que coincidan con la búsqueda.
+        </p>
+
+      </div>
+
+    }
+    @else {
+
+      <div class="table-wrapper">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>
+                Empleado
+              </th>
+
+              <th>
+                Usuario
+              </th>
+
+              <th>
+                Rol
+              </th>
+
+              <th>
+                Último acceso
+              </th>
+
+              <th>
+                Estado
+              </th>
+
+              <th class="actions-column">
+                Acciones
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            @for (
+              usuario of usuariosFiltrados();
+              track usuario.idUsuario
+            ) {
+
+              <tr>
+
+                <td>
+
+                  <div class="employee-cell">
+
+                    <div class="employee-avatar">
+
+                      {{
+                        usuario.empleado
+                          .charAt(0)
+                          .toUpperCase()
+                      }}
+
+                    </div>
+
+                    <strong>
+                      {{ usuario.empleado }}
+                    </strong>
+
+                  </div>
+
+                </td>
+
+
+                <td>
+
+                  <span class="username">
+                    {{ usuario.nombreUsuario }}
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  <span
+                    class="role-badge"
+                    [class.role-admin]="
+                      usuario.rol === 'Administrador'
+                    "
+                    [class.role-rrhh]="
+                      usuario.rol === 'RRHH'
+                    ">
+
+                    {{ usuario.rol }}
+
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  @if (
+                    usuario.ultimoAcceso
+                  ) {
+
+                    <span class="last-access">
+
+                      {{
+                        usuario.ultimoAcceso
+                          | date:'dd/MM/yyyy HH:mm'
+                      }}
+
+                    </span>
+
+                  }
+                  @else {
+
+                    <span class="no-access">
+                      Nunca
+                    </span>
+
+                  }
+
+                </td>
+
+
+                <td>
+
+                  @if (
+                    usuario.activo
+                  ) {
+
+                    <span class="badge badge-success">
+                      Activo
+                    </span>
+
+                  }
+                  @else {
+
+                    <span class="badge badge-neutral">
+                      Inactivo
+                    </span>
+
+                  }
+
+                </td>
+
+
+                <td>
+
+                  <div class="actions">
+
+                    <button
+                      type="button"
+                      class="action-button"
+                      (click)="editarUsuario(usuario)">
+
+                      Editar
+
+                    </button>
+
+
+                    <button
+                      type="button"
+                      class="action-button password"
+                      (click)="abrirResetPassword(usuario)">
+
+                      Contraseña
+
+                    </button>
+
+
+                    <button
+                      type="button"
+                      class="action-button"
+                      [class.danger]="usuario.activo"
+                      [class.success]="!usuario.activo"
+                      (click)="cambiarEstado(usuario)">
+
+                      {{
+                        usuario.activo
+                          ? 'Desactivar'
+                          : 'Activar'
+                      }}
+
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    }
+
+  </section>
+
+
+  <!-- ===================================================
+       NUEVO / EDITAR USUARIO
+  ==================================================== -->
+  <app-modal
+    [abierto]="modalUsuarioAbierto()"
+    [titulo]="
+      modoEdicion()
+        ? 'Editar usuario'
+        : 'Nuevo usuario'
+    "
+    ancho="680px"
+    (cerrarModal)="cerrarModalUsuario()">
+
+    <form
+      class="user-form"
+      (ngSubmit)="guardarUsuario()">
+
+
+      <div class="form-section">
+
+        <h3>
+          Cuenta de acceso
+        </h3>
+
+        <p>
+          Asigne un empleado, nombre de usuario y rol.
+        </p>
+
+      </div>
+
+
+      <div class="form-grid">
+
+
+        <!-- EMPLEADO -->
+        <div class="form-field full">
+
+          <label for="idEmpleado">
+            Empleado *
+          </label>
+
+
+          <select
+            id="idEmpleado"
+            name="idEmpleado"
+            [(ngModel)]="formulario.idEmpleado"
+            [disabled]="
+              guardando() ||
+              modoEdicion()
+            "
+            required>
+
+            <option [ngValue]="null">
+              Seleccione un empleado
+            </option>
+
+
+            @for (
+              empleado of empleadosDisponibles();
+              track empleado.idEmpleado
+            ) {
+
+              <option
+                [ngValue]="empleado.idEmpleado">
+
+                {{
+                  empleado.nombreCompleto
+                }}
+
+                ·
+
+                {{
+                  empleado.identificacion
+                }}
+
+              </option>
+
+            }
+
+          </select>
+
+        </div>
+
+
+        <!-- USUARIO -->
+        <div class="form-field">
+
+          <label for="nombreUsuario">
+            Nombre de usuario *
+          </label>
+
+          <input
+            id="nombreUsuario"
+            name="nombreUsuario"
+            type="text"
+            [(ngModel)]="formulario.nombreUsuario"
+            [disabled]="guardando()"
+            autocomplete="off"
+            maxlength="100"
+            required>
+
+        </div>
+
+
+        <!-- ROL -->
+        <div class="form-field">
+
+          <label for="idRol">
+            Rol *
+          </label>
+
+          <select
+            id="idRol"
+            name="idRol"
+            [(ngModel)]="formulario.idRol"
+            [disabled]="guardando()"
+            required>
+
+            <option [ngValue]="null">
+              Seleccione un rol
+            </option>
+
+
+            @for (
+              rol of roles();
+              track rol.idRol
+            ) {
+
+              <option
+                [ngValue]="rol.idRol">
+
+                {{ rol.nombre }}
+
+              </option>
+
+            }
+
+          </select>
+
+        </div>
+
+
+        <!-- SOLO CREACIÓN -->
+        @if (
+          !modoEdicion()
+        ) {
+
+          <div class="form-field">
+
+            <label for="password">
+              Contraseña *
+            </label>
+
+            <input
+              id="password"
+              name="password"
+              type="password"
+              [(ngModel)]="formulario.password"
+              [disabled]="guardando()"
+              minlength="8"
+              autocomplete="new-password"
+              required>
+
+            <small>
+              Mínimo 8 caracteres.
+            </small>
+
+          </div>
+
+
+          <div class="form-field">
+
+            <label for="confirmarPassword">
+              Confirmar contraseña *
+            </label>
+
+            <input
+              id="confirmarPassword"
+              name="confirmarPassword"
+              type="password"
+              [(ngModel)]="formulario.confirmarPassword"
+              [disabled]="guardando()"
+              minlength="8"
+              autocomplete="new-password"
+              required>
+
+          </div>
+
+        }
+
+      </div>
+
+
+      @if (
+        modoEdicion()
+      ) {
+
+        <div class="form-divider"></div>
+
+
+        <label class="status-switch">
+
+          <input
+            type="checkbox"
+            name="activo"
+            [(ngModel)]="formulario.activo"
+            [disabled]="guardando()">
+
+
+          <span class="switch-control"></span>
+
+
+          <span class="switch-text">
+
+            <strong>
+              Usuario activo
+            </strong>
+
+            <small>
+              Un usuario inactivo no puede iniciar sesión.
+            </small>
+
+          </span>
+
+        </label>
+
+      }
+
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="btn-secondary"
+          [disabled]="guardando()"
+          (click)="cerrarModalUsuario()">
+
+          Cancelar
+
+        </button>
+
+
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="guardando()">
+
+          @if (
+            guardando()
+          ) {
+
+            Guardando...
+
+          }
+          @else if (
+            modoEdicion()
+          ) {
+
+            Guardar cambios
+
+          }
+          @else {
+
+            Crear usuario
+
+          }
+
+        </button>
+
+      </div>
+
+    </form>
+
+  </app-modal>
+
+
+  <!-- ===================================================
+       RESET PASSWORD
+  ==================================================== -->
+  <app-modal
+    [abierto]="modalPasswordAbierto()"
+    titulo="Restablecer contraseña"
+    ancho="520px"
+    (cerrarModal)="cerrarResetPassword()">
+
+    <div class="password-modal">
+
+      <div class="password-user">
+
+        <span>
+          Usuario
+        </span>
+
+        <strong>
+          {{ usuarioPassword?.nombreUsuario }}
+        </strong>
+
+        <small>
+          {{ usuarioPassword?.empleado }}
+        </small>
+
+      </div>
+
+
+      <div class="form-field">
+
+        <label for="passwordNuevo">
+          Nueva contraseña *
+        </label>
+
+        <input
+          id="passwordNuevo"
+          type="password"
+          [(ngModel)]="passwordNuevo"
+          [disabled]="guardandoPassword()"
+          minlength="8"
+          autocomplete="new-password">
+
+        <small>
+          Mínimo 8 caracteres.
+        </small>
+
+      </div>
+
+
+      <div class="form-field">
+
+        <label for="confirmarPasswordReset">
+          Confirmar contraseña *
+        </label>
+
+        <input
+          id="confirmarPasswordReset"
+          type="password"
+          [(ngModel)]="confirmarPassword"
+          [disabled]="guardandoPassword()"
+          minlength="8"
+          autocomplete="new-password">
+
+      </div>
+
+
+      <div class="security-note">
+
+        La contraseña no se almacena en texto plano
+        ni se registra en auditoría.
+
+      </div>
+
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="btn-secondary"
+          [disabled]="guardandoPassword()"
+          (click)="cerrarResetPassword()">
+
+          Cancelar
+
+        </button>
+
+
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="guardandoPassword()"
+          (click)="guardarResetPassword()">
+
+          @if (
+            guardandoPassword()
+          ) {
+
+            Actualizando...
+
+          }
+          @else {
+
+            Restablecer contraseña
+
+          }
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </app-modal>
+
+
+  <!-- ===================================================
+       ESTADO
+  ==================================================== -->
+  <app-confirm-dialog
+    [abierto]="confirmacionAbierta()"
+    [titulo]="
+      usuarioCambioEstado?.activo
+        ? 'Desactivar usuario'
+        : 'Activar usuario'
+    "
+    [mensaje]="
+      usuarioCambioEstado?.activo
+        ? 'El usuario dejará de poder iniciar sesión. ¿Desea continuar?'
+        : 'El usuario volverá a tener acceso al sistema. ¿Desea continuar?'
+    "
+    [textoConfirmar]="
+      usuarioCambioEstado?.activo
+        ? 'Desactivar'
+        : 'Activar'
+    "
+    [tipo]="
+      usuarioCambioEstado?.activo
+        ? 'danger'
+        : 'primary'
+    "
+    (confirmar)="confirmarCambioEstado()"
+    (cancelar)="cancelarCambioEstado()">
+  </app-confirm-dialog>
+
+</section>

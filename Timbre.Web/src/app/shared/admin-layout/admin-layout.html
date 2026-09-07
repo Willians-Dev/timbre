@@ -1,0 +1,370 @@
+<div
+  class="admin-shell"
+  [class.sidebar-collapsed]="sidebarCollapsed">
+
+  <!-- ======================================
+       SIDEBAR
+  ======================================= -->
+
+  <aside class="sidebar">
+
+    <!-- ====================================
+         MARCA
+    ===================================== -->
+
+    <div class="sidebar-brand">
+
+      <div class="brand-icon">
+        CA
+      </div>
+
+      <div class="brand-text">
+
+        <strong>
+          Control de Asistencia
+        </strong>
+
+        <span>
+          Administración
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- ====================================
+         NAVEGACIÓN
+    ===================================== -->
+
+    <nav class="sidebar-nav">
+
+
+      <!-- ==================================
+           ADMINISTRADOR / RRHH
+      =================================== -->
+
+      @if (
+        puedeAdministrar
+      ) {
+
+        <!-- DASHBOARD -->
+
+        <a
+          routerLink="/admin/dashboard"
+          routerLinkActive="active">
+
+          <span class="nav-icon">
+            ◫
+          </span>
+
+          <span class="nav-label">
+            Dashboard
+          </span>
+
+        </a>
+
+
+        <!-- EMPLEADOS -->
+
+        <a
+          routerLink="/admin/empleados"
+          routerLinkActive="active">
+
+          <span class="nav-icon">
+            👥
+          </span>
+
+          <span class="nav-label">
+            Empleados
+          </span>
+
+        </a>
+
+
+        <!-- JORNADAS -->
+
+        <a
+          routerLink="/admin/jornadas"
+          routerLinkActive="active">
+
+          <span class="nav-icon">
+            ◷
+          </span>
+
+          <span class="nav-label">
+            Jornadas
+          </span>
+
+        </a>
+
+
+        <!-- MARCACIONES -->
+
+        <a
+          routerLink="/admin/marcaciones"
+          routerLinkActive="active">
+
+          <span class="nav-icon">
+            ✓
+          </span>
+
+          <span class="nav-label">
+            Marcaciones
+          </span>
+
+        </a>
+
+
+        <!--
+          HISTORIAL
+
+          Lo activaremos cuando creemos
+          /admin/historial.
+
+          <a
+            routerLink="/admin/historial"
+            routerLinkActive="active">
+
+            <span class="nav-icon">
+              ≡
+            </span>
+
+            <span class="nav-label">
+              Historial
+            </span>
+
+          </a>
+        -->
+
+
+        <!--
+          REPORTES
+
+          Lo activaremos cuando creemos
+          /admin/reportes.
+
+          <a
+            routerLink="/admin/reportes"
+            routerLinkActive="active">
+
+            <span class="nav-icon">
+              ▤
+            </span>
+
+            <span class="nav-label">
+              Reportes
+            </span>
+
+          </a>
+        -->
+
+      }
+
+
+      <!-- ==================================
+           MI ASISTENCIA
+      =================================== -->
+
+      <div class="nav-separator">
+      </div>
+
+
+      <a
+        routerLink="/mi-asistencia"
+        routerLinkActive="active">
+
+        <span class="nav-icon">
+          ◷
+        </span>
+
+        <span class="nav-label">
+          Mi asistencia
+        </span>
+
+      </a>
+
+
+      <!-- ==================================
+           SOLO ADMINISTRADOR
+      =================================== -->
+
+      @if (
+        esAdministrador
+      ) {
+
+        <div class="nav-separator">
+        </div>
+
+
+        <!-- USUARIOS -->
+
+        <a
+          routerLink="/admin/usuarios"
+          routerLinkActive="active">
+
+          <span class="nav-icon">
+            ⚿
+          </span>
+
+          <span class="nav-label">
+            Usuarios
+          </span>
+
+        </a>
+
+
+        <!-- AUDITORÍA -->
+
+        <a
+          routerLink="/admin/auditoria"
+          routerLinkActive="active">
+
+          <span class="nav-icon">
+            ≡
+          </span>
+
+          <span class="nav-label">
+            Auditoría
+          </span>
+
+        </a>
+
+      }
+
+
+      <!-- ==================================
+           PANTALLA DE MARCACIÓN
+      =================================== -->
+
+      <div class="nav-separator">
+      </div>
+
+
+      <a
+        routerLink="/">
+
+        <span class="nav-icon">
+          ◎
+        </span>
+
+        <span class="nav-label">
+          Pantalla de marcación
+        </span>
+
+      </a>
+
+    </nav>
+
+
+    <!-- ====================================
+         FOOTER SIDEBAR
+    ===================================== -->
+
+    <div class="sidebar-footer">
+
+      <button
+        type="button"
+        class="logout-button"
+        (click)="cerrarSesion()">
+
+        <span class="nav-icon">
+          ↪
+        </span>
+
+        <span class="nav-label">
+          Cerrar sesión
+        </span>
+
+      </button>
+
+    </div>
+
+  </aside>
+
+
+  <!-- ======================================
+       CONTENIDO
+  ======================================= -->
+
+  <section class="main-area">
+
+
+    <!-- ====================================
+         TOPBAR
+    ===================================== -->
+
+    <header class="topbar">
+
+      <div class="topbar-left">
+
+        <button
+          type="button"
+          class="menu-button"
+          aria-label="Mostrar u ocultar menú"
+          (click)="toggleSidebar()">
+
+          ☰
+
+        </button>
+
+
+        <div>
+
+          <span class="topbar-label">
+            Sistema
+          </span>
+
+          <strong>
+            Control de Asistencia
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- ==================================
+           USUARIO AUTENTICADO
+      =================================== -->
+
+      <div class="user-box">
+
+        <div class="user-avatar">
+
+          {{ inicialUsuario }}
+
+        </div>
+
+
+        <div class="user-info">
+
+          <strong>
+            {{ nombreUsuario }}
+          </strong>
+
+          <span>
+            {{ rol }}
+          </span>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <!-- ====================================
+         CONTENIDO DE LA RUTA
+    ===================================== -->
+
+    <main class="content">
+
+      <router-outlet>
+      </router-outlet>
+
+    </main>
+
+  </section>
+
+</div>

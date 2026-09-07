@@ -1,0 +1,63 @@
+@if (abierto) {
+
+  <div
+    class="confirm-backdrop"
+    (click)="cerrar()">
+
+    <section
+      class="confirm-dialog"
+      (click)="detenerPropagacion($event)">
+
+      <div
+        class="confirm-icon"
+        [class.danger]="tipo === 'danger'">
+
+        @if (tipo === 'danger') {
+          !
+        }
+        @else {
+          ?
+        }
+
+      </div>
+
+      <div class="confirm-content">
+
+        <h2>
+          {{ titulo }}
+        </h2>
+
+        <p>
+          {{ mensaje }}
+        </p>
+
+      </div>
+
+      <div class="confirm-actions">
+
+        <button
+          type="button"
+          class="btn-cancel"
+          (click)="cerrar()">
+
+          Cancelar
+
+        </button>
+
+        <button
+          type="button"
+          class="btn-confirm"
+          [class.danger]="tipo === 'danger'"
+          (click)="aceptar()">
+
+          {{ textoConfirmar }}
+
+        </button>
+
+      </div>
+
+    </section>
+
+  </div>
+
+}

@@ -1,0 +1,496 @@
+<section class="kiosco-page">
+
+  <!-- =================================================
+       ENCABEZADO
+  ================================================== -->
+
+  <header class="kiosco-header">
+
+    <div class="brand">
+
+      <div class="brand-mark">
+        T
+      </div>
+
+
+      <div>
+
+        <strong>
+          Control de asistencia
+        </strong>
+
+        <span>
+          Registro mediante reconocimiento facial
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <div class="clock">
+
+      <span>
+        Hora actual
+      </span>
+
+      <strong>
+        {{ horaActual() }}
+      </strong>
+
+    </div>
+
+  </header>
+
+
+  <!-- =================================================
+       CONTENIDO
+  ================================================== -->
+
+  <main class="kiosco-content">
+
+    <section class="capture-panel">
+
+      <div class="camera-wrapper">
+
+        <!-- =============================================
+             VIDEO PERMANENTE
+        ============================================== -->
+
+        <video
+          #videoCamara
+          class="camera-video"
+          autoplay
+          muted
+          playsinline>
+        </video>
+
+
+        <!-- MARCO FACIAL -->
+
+        <div class="face-guide">
+
+          <div class="face-oval">
+          </div>
+
+        </div>
+
+
+        <!-- =============================================
+             INICIALIZANDO
+        ============================================== -->
+
+        @if (
+          estado() ===
+          'inicializando'
+        ) {
+
+          <div class="camera-overlay neutral-overlay">
+
+            <div class="spinner">
+            </div>
+
+
+            <h2>
+              Preparando cámara
+            </h2>
+
+
+            <p>
+              Espere un momento.
+            </p>
+
+          </div>
+
+        }
+
+
+        <!-- =============================================
+             PROCESANDO
+        ============================================== -->
+
+        @if (
+          estado() ===
+          'procesando'
+        ) {
+
+          <div class="camera-overlay processing-overlay">
+
+            <div class="spinner">
+            </div>
+
+
+            <h2>
+              Validando identidad
+            </h2>
+
+
+            <p>
+              Estamos procesando su rostro.
+            </p>
+
+          </div>
+
+        }
+
+
+        <!-- =============================================
+             ÉXITO
+        ============================================== -->
+
+        @if (
+          estado() ===
+          'exito' &&
+          resultado()
+        ) {
+
+          <div class="camera-overlay success-overlay">
+
+            <div class="result-icon success">
+              ✓
+            </div>
+
+
+            <span class="result-caption">
+              MARCACIÓN REGISTRADA
+            </span>
+
+
+            <h2>
+
+              {{
+                resultado()!
+                  .empleado
+              }}
+
+            </h2>
+
+
+            <div class="result-mark">
+
+              <strong>
+
+                {{
+                  nombreTipoMarcacion(
+                    resultado()!
+                      .tipoMarcacion
+                  )
+                }}
+
+              </strong>
+
+
+              <span>
+
+                {{
+                  resultado()!
+                    .hora
+                }}
+
+              </span>
+
+            </div>
+
+
+            @if (
+              resultado()!
+                .estadoEntrada
+                ?.estado
+            ) {
+
+              <span
+                class="entry-result"
+                [class.delay]="
+                  resultado()!
+                    .estadoEntrada
+                    ?.estado ===
+                  'Atraso'
+                ">
+
+                {{
+                  resultado()!
+                    .estadoEntrada
+                    ?.estado
+                }}
+
+                @if (
+                  (
+                    resultado()!
+                      .estadoEntrada
+                      ?.minutosAtraso ??
+                    0
+                  ) > 0
+                ) {
+
+                  ·
+
+                  {{
+                    resultado()!
+                      .estadoEntrada
+                      ?.minutosAtraso
+                  }}
+
+                  min
+
+                }
+
+              </span>
+
+            }
+
+
+            <p class="result-message">
+
+              {{
+                resultado()!
+                  .mensaje ??
+                'Marcación registrada correctamente.'
+              }}
+
+            </p>
+
+
+            <button
+              type="button"
+              class="overlay-button"
+              (click)="nuevaMarcacion()">
+
+              Nueva marcación
+
+            </button>
+
+          </div>
+
+        }
+
+
+        <!-- =============================================
+             ERROR
+        ============================================== -->
+
+        @if (
+          estado() ===
+          'error'
+        ) {
+
+          <div class="camera-overlay error-overlay">
+
+            <div class="result-icon error">
+              !
+            </div>
+
+
+            <span class="result-caption error-caption">
+              NO SE REGISTRÓ LA MARCACIÓN
+            </span>
+
+
+            <h2>
+              Intente nuevamente
+            </h2>
+
+
+            <p class="result-message">
+
+              {{ mensajeError() }}
+
+            </p>
+
+
+            <button
+              type="button"
+              class="overlay-button"
+              (click)="nuevaMarcacion()">
+
+              Continuar
+
+            </button>
+
+          </div>
+
+        }
+
+      </div>
+
+
+      <!-- =================================================
+           PANEL DERECHO
+      ================================================== -->
+
+      <aside class="instruction-panel">
+
+        <div class="instruction-header">
+
+          <span class="instruction-eyebrow">
+            REGISTRO DE ASISTENCIA
+          </span>
+
+
+          <h1>
+            Mire hacia la cámara
+          </h1>
+
+
+          <p>
+            Coloque su rostro dentro del área
+            indicada y registre su marcación.
+          </p>
+
+        </div>
+
+
+        <div class="steps">
+
+          <div class="step">
+
+            <span class="step-number">
+              1
+            </span>
+
+
+            <div>
+
+              <strong>
+                Ubíquese frente a la cámara
+              </strong>
+
+              <p>
+                Mantenga el rostro visible y
+                mire directamente hacia adelante.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="step">
+
+            <span class="step-number">
+              2
+            </span>
+
+
+            <div>
+
+              <strong>
+                Evite cubrir su rostro
+              </strong>
+
+              <p>
+                Retire temporalmente objetos que
+                dificulten la identificación.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="step">
+
+            <span class="step-number">
+              3
+            </span>
+
+
+            <div>
+
+              <strong>
+                Registre su marcación
+              </strong>
+
+              <p>
+                El sistema identificará automáticamente
+                al empleado y aplicará la marcación
+                correspondiente a la jornada.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="register-button"
+          [disabled]="
+            estado() !==
+            'listo'
+          "
+          (click)="registrarMarcacion()">
+
+          @if (
+            estado() ===
+            'procesando'
+          ) {
+
+            Procesando...
+
+          }
+          @else {
+
+            Registrar marcación
+
+          }
+
+        </button>
+
+
+        <div class="privacy-note">
+
+          <span class="privacy-icon">
+            ✓
+          </span>
+
+
+          <p>
+            La fotografía capturada se utiliza
+            únicamente durante el proceso de
+            identificación y no se almacena
+            como parte de la marcación.
+          </p>
+
+        </div>
+
+      </aside>
+
+    </section>
+
+  </main>
+
+
+  <!-- =================================================
+       CANVAS OCULTO
+  ================================================== -->
+
+  <canvas
+    #canvasCaptura
+    class="capture-canvas">
+  </canvas>
+
+
+  <!-- =================================================
+       PIE
+  ================================================== -->
+
+  <footer class="kiosco-footer">
+
+    <span>
+      Sistema de control de asistencia
+    </span>
+
+
+    <a
+      routerLink="/login"
+      class="system-access-link">
+
+      Acceso al sistema
+
+    </a>
+
+  </footer>
+
+</section>

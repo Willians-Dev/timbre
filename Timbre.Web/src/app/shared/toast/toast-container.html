@@ -1,0 +1,67 @@
+<div
+  class="toast-container"
+  aria-live="polite"
+  aria-atomic="true">
+
+  @for (
+    notification
+    of notificationService.notifications();
+    track notification.id
+  ) {
+
+    <div
+      class="toast"
+      [class.toast-success]="notification.type === 'success'"
+      [class.toast-error]="notification.type === 'error'"
+      [class.toast-warning]="notification.type === 'warning'"
+      [class.toast-info]="notification.type === 'info'">
+
+      <div class="toast-icon">
+
+        @switch (notification.type) {
+
+          @case ('success') {
+            ✓
+          }
+
+          @case ('error') {
+            !
+          }
+
+          @case ('warning') {
+            !
+          }
+
+          @default {
+            i
+          }
+
+        }
+
+      </div>
+
+      <div class="toast-content">
+
+        <div class="toast-title">
+          {{ notification.title }}
+        </div>
+
+        <div class="toast-message">
+          {{ notification.message }}
+        </div>
+
+      </div>
+
+      <button
+        type="button"
+        class="toast-close"
+        aria-label="Cerrar notificación"
+        (click)="cerrar(notification.id)">
+        ×
+      </button>
+
+    </div>
+
+  }
+
+</div>

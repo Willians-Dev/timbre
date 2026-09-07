@@ -1,0 +1,977 @@
+<section class="page">
+
+  <!-- =================================================
+       ENCABEZADO
+  ================================================== -->
+
+  <div class="page-header">
+
+    <div>
+
+      <span class="eyebrow">
+        CONTROL DE ASISTENCIA
+      </span>
+
+      <h1>
+        Marcaciones
+      </h1>
+
+      <p>
+        Consulte, revise y gestione las marcaciones
+        registradas por los empleados.
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="btn-primary"
+      (click)="abrirCorreccion()">
+
+      + Corrección manual
+
+    </button>
+
+  </div>
+
+
+  <!-- =================================================
+       RESUMEN
+  ================================================== -->
+
+  <div class="summary-grid">
+
+    <div class="summary-card">
+
+      <span>
+        Marcaciones activas
+      </span>
+
+      <strong>
+        {{ totalActivas() }}
+      </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <span>
+        Reconocimiento facial
+      </span>
+
+      <strong>
+        {{ totalFaciales() }}
+      </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <span>
+        Correcciones manuales
+      </span>
+
+      <strong>
+        {{ totalManuales() }}
+      </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <span>
+        Anuladas
+      </span>
+
+      <strong>
+        {{ totalAnuladas() }}
+      </strong>
+
+    </div>
+
+  </div>
+
+
+  <!-- =================================================
+       FILTROS
+  ================================================== -->
+
+  <div class="filters">
+
+    <div class="field">
+
+      <label>
+        Fecha
+      </label>
+
+      <input
+        type="date"
+        [ngModel]="fecha()"
+        (ngModelChange)="
+          fecha.set($event);
+          consultar()
+        ">
+
+    </div>
+
+
+    <div class="field search-field">
+
+      <label>
+        Buscar
+      </label>
+
+      <input
+        type="text"
+        placeholder="Empleado, identificación o área..."
+        [ngModel]="busqueda()"
+        (ngModelChange)="
+          busqueda.set($event)
+        ">
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Tipo
+      </label>
+
+      <select
+        [ngModel]="tipo()"
+        (ngModelChange)="
+          tipo.set($event)
+        ">
+
+        <option value="">
+          Todos
+        </option>
+
+        <option value="Entrada">
+          Entrada
+        </option>
+
+        <option value="InicioAlmuerzo">
+          Inicio almuerzo
+        </option>
+
+        <option value="FinAlmuerzo">
+          Fin almuerzo
+        </option>
+
+        <option value="Salida">
+          Salida
+        </option>
+
+      </select>
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Origen
+      </label>
+
+      <select
+        [ngModel]="origen()"
+        (ngModelChange)="
+          origen.set($event)
+        ">
+
+        <option value="">
+          Todos
+        </option>
+
+        <option value="Facial">
+          Facial
+        </option>
+
+        <option value="Manual">
+          Manual
+        </option>
+
+      </select>
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Estado
+      </label>
+
+      <select
+        [ngModel]="estado()"
+        (ngModelChange)="
+          estado.set($event)
+        ">
+
+        <option value="">
+          Todos
+        </option>
+
+        <option value="Activa">
+          Activa
+        </option>
+
+        <option value="Anulada">
+          Anulada
+        </option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+
+  <!-- =================================================
+       TABLA
+  ================================================== -->
+
+  <div class="card">
+
+    @if (cargando()) {
+
+      <div class="state">
+
+        Consultando marcaciones...
+
+      </div>
+
+    }
+    @else if (
+      marcacionesFiltradas().length === 0
+    ) {
+
+      <div class="state">
+
+        No existen marcaciones para los
+        filtros seleccionados.
+
+      </div>
+
+    }
+    @else {
+
+      <div class="table-wrapper">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>
+                Empleado
+              </th>
+
+              <th>
+                Hora
+              </th>
+
+              <th>
+                Marcación
+              </th>
+
+              <th>
+                Origen
+              </th>
+
+              <th>
+                Estado
+              </th>
+
+              <th>
+                Observación
+              </th>
+
+              <th class="action-column">
+                Acción
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            @for (
+              marcacion
+              of marcacionesFiltradas();
+              track marcacion.idMarcacion
+            ) {
+
+              <tr
+                [class.anulada]="
+                  marcacion.estadoMarcacion ===
+                  'Anulada'
+                ">
+
+
+                <!-- EMPLEADO -->
+
+                <td>
+
+                  <strong>
+
+                    {{
+                      marcacion.empleado
+                    }}
+
+                  </strong>
+
+
+                  <small>
+
+                    {{
+                      marcacion.identificacion
+                    }}
+
+                    @if (
+                      marcacion.area
+                    ) {
+
+                      ·
+                      {{
+                        marcacion.area
+                      }}
+
+                    }
+
+                  </small>
+
+                </td>
+
+
+                <!-- HORA -->
+
+                <td>
+
+                  <span class="mark-time">
+
+                    {{
+                      hora(
+                        marcacion.fechaHora
+                      )
+                    }}
+
+                  </span>
+
+                </td>
+
+
+                <!-- TIPO -->
+
+                <td>
+
+                  <span
+                    class="type-badge"
+                    [attr.data-type]="
+                      marcacion.tipoMarcacion
+                    ">
+
+                    {{
+                      nombreTipo(
+                        marcacion.tipoMarcacion
+                      )
+                    }}
+
+                  </span>
+
+                </td>
+
+
+                <!-- ORIGEN -->
+
+                <td>
+
+                  @if (
+                    marcacion.esFacial
+                  ) {
+
+                    <span class="origin facial">
+
+                      Facial
+
+                    </span>
+
+                  }
+                  @else {
+
+                    <span class="origin manual">
+
+                      Manual
+
+                    </span>
+
+                  }
+
+                </td>
+
+
+                <!-- ESTADO -->
+
+                <td>
+
+                  <span
+                    class="status"
+                    [class.active]="
+                      marcacion.estadoMarcacion ===
+                      'Activa'
+                    "
+                    [class.cancelled]="
+                      marcacion.estadoMarcacion ===
+                      'Anulada'
+                    ">
+
+                    {{
+                      marcacion.estadoMarcacion
+                    }}
+
+                  </span>
+
+                </td>
+
+
+                <!-- OBSERVACIÓN -->
+
+                <td class="observation">
+
+                  {{
+                    marcacion.observacion ??
+                    '-'
+                  }}
+
+                </td>
+
+
+                <!-- ACCIÓN -->
+
+                <td class="action-cell">
+
+                  @if (
+                    marcacion.estadoMarcacion ===
+                    'Activa'
+                  ) {
+
+                    <button
+                      type="button"
+                      class="
+                        action-button
+                        action-button-danger
+                      "
+                      (click)="
+                        solicitarAnulacion(
+                          marcacion
+                        )
+                      ">
+
+                      <span
+                        class="action-icon"
+                        aria-hidden="true">
+
+                        ×
+
+                      </span>
+
+                      <span>
+                        Anular
+                      </span>
+
+                    </button>
+
+                  }
+                  @else {
+
+                    <span class="action-unavailable">
+
+                      Sin acciones
+
+                    </span>
+
+                  }
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    }
+
+  </div>
+
+
+  <!-- =================================================
+       MODAL CORRECCIÓN MANUAL
+  ================================================== -->
+
+  @if (
+    modalCorreccion()
+  ) {
+
+    <div
+      class="modal-backdrop"
+      (click)="cerrarCorreccion()">
+
+
+      <div
+        class="modal"
+        (click)="
+          $event.stopPropagation()
+        ">
+
+
+        <div class="modal-header">
+
+          <div>
+
+            <span class="eyebrow">
+              AJUSTE ADMINISTRATIVO
+            </span>
+
+
+            <h2>
+              Corrección manual
+            </h2>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="close"
+            [disabled]="guardando()"
+            (click)="cerrarCorreccion()">
+
+            ×
+
+          </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+          <div class="info-box">
+
+            La corrección manual quedará registrada
+            en auditoría junto con el motivo ingresado.
+
+          </div>
+
+
+          <div class="field">
+
+            <label>
+              Empleado *
+            </label>
+
+
+            <select
+              [ngModel]="
+                formulario()
+                  .idEmpleado
+              "
+              (ngModelChange)="
+                actualizarCampo(
+                  'idEmpleado',
+                  $event === null
+                    ? null
+                    : +$event
+                )
+              ">
+
+              <option
+                [ngValue]="null">
+
+                Seleccione...
+
+              </option>
+
+
+              @for (
+                empleado
+                of empleados();
+                track empleado.idEmpleado
+              ) {
+
+                <option
+                  [ngValue]="
+                    empleado.idEmpleado
+                  ">
+
+                  {{
+                    empleado.nombreCompleto
+                  }}
+
+                </option>
+
+              }
+
+            </select>
+
+          </div>
+
+
+          <div class="form-grid">
+
+            <div class="field">
+
+              <label>
+                Fecha *
+              </label>
+
+
+              <input
+                type="date"
+                [ngModel]="
+                  formulario().fecha
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'fecha',
+                    $event
+                  )
+                ">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>
+                Hora *
+              </label>
+
+
+              <input
+                type="time"
+                [ngModel]="
+                  formulario().hora
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'hora',
+                    $event
+                  )
+                ">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>
+                Tipo *
+              </label>
+
+
+              <select
+                [ngModel]="
+                  formulario()
+                    .tipoMarcacion
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'tipoMarcacion',
+                    $event
+                  )
+                ">
+
+                <option value="Entrada">
+                  Entrada
+                </option>
+
+                <option value="InicioAlmuerzo">
+                  Inicio almuerzo
+                </option>
+
+                <option value="FinAlmuerzo">
+                  Fin almuerzo
+                </option>
+
+                <option value="Salida">
+                  Salida
+                </option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+
+          <div class="field">
+
+            <label>
+              Motivo *
+            </label>
+
+
+            <textarea
+              rows="4"
+              maxlength="500"
+              placeholder="Explique el motivo de la corrección..."
+              [ngModel]="
+                formulario().motivo
+              "
+              (ngModelChange)="
+                actualizarCampo(
+                  'motivo',
+                  $event
+                )
+              ">
+            </textarea>
+
+          </div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+          <button
+            type="button"
+            class="btn-secondary"
+            [disabled]="guardando()"
+            (click)="cerrarCorreccion()">
+
+            Cancelar
+
+          </button>
+
+
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="guardando()"
+            (click)="guardarCorreccion()">
+
+            {{
+              guardando()
+                ? 'Guardando...'
+                : 'Registrar corrección'
+            }}
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+
+  <!-- =================================================
+       MODAL ANULACIÓN
+  ================================================== -->
+
+  @if (
+    modalAnular()
+  ) {
+
+    <div
+      class="modal-backdrop"
+      (click)="cancelarAnulacion()">
+
+
+      <div
+        class="modal small"
+        (click)="
+          $event.stopPropagation()
+        ">
+
+
+        <div class="modal-header">
+
+          <div>
+
+            <span
+              class="
+                eyebrow
+                danger-text
+              ">
+
+              ANULACIÓN
+
+            </span>
+
+
+            <h2>
+              Anular marcación
+            </h2>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="close"
+            [disabled]="guardando()"
+            (click)="cancelarAnulacion()">
+
+            ×
+
+          </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+          <div class="warning-box">
+
+            <div class="warning-icon">
+
+              !
+
+            </div>
+
+
+            <div>
+
+              <strong>
+                Esta acción no elimina el registro.
+              </strong>
+
+              <span>
+                La marcación quedará como anulada
+                y se conservará en auditoría.
+              </span>
+
+            </div>
+
+          </div>
+
+
+          @if (
+            marcacionSeleccionada()
+          ) {
+
+            <div class="selected-mark">
+
+              <strong>
+
+                {{
+                  marcacionSeleccionada()!
+                    .empleado
+                }}
+
+              </strong>
+
+
+              <span>
+
+                {{
+                  nombreTipo(
+                    marcacionSeleccionada()!
+                      .tipoMarcacion
+                  )
+                }}
+
+                ·
+
+                {{
+                  hora(
+                    marcacionSeleccionada()!
+                      .fechaHora
+                  )
+                }}
+
+              </span>
+
+            </div>
+
+          }
+
+
+          <div class="field">
+
+            <label>
+              Motivo de la anulación *
+            </label>
+
+
+            <textarea
+              rows="4"
+              maxlength="500"
+              placeholder="Indique por qué se debe anular esta marcación..."
+              [ngModel]="
+                motivoAnulacion()
+              "
+              (ngModelChange)="
+                motivoAnulacion.set(
+                  $event
+                )
+              ">
+            </textarea>
+
+          </div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+          <button
+            type="button"
+            class="btn-secondary"
+            [disabled]="guardando()"
+            (click)="cancelarAnulacion()">
+
+            Cancelar
+
+          </button>
+
+
+          <button
+            type="button"
+            class="btn-danger"
+            [disabled]="guardando()"
+            (click)="confirmarAnulacion()">
+
+            @if (
+              guardando()
+            ) {
+
+              Anulando...
+
+            }
+            @else {
+
+              <span>
+                Confirmar anulación
+              </span>
+
+            }
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+</section>

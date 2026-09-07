@@ -1,0 +1,752 @@
+<section class="page">
+
+  <!-- =================================================
+       HEADER
+  ================================================== -->
+
+  <div class="page-header">
+
+    <div>
+
+      <span class="eyebrow">
+        CONTROL DE ASISTENCIA
+      </span>
+
+      <h1>
+        Mi asistencia
+      </h1>
+
+      <p>
+        Consulte sus marcaciones y el estado
+        de su jornada laboral.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  @if (
+    cargando() &&
+    !datos()
+  ) {
+
+    <div class="loading-state">
+
+      Consultando asistencia...
+
+    </div>
+
+  }
+  @else if (
+    datos()
+  ) {
+
+    <!-- =================================================
+         EMPLEADO
+    ================================================== -->
+
+    <section class="employee-card">
+
+      <div class="avatar">
+
+        {{
+          datos()!
+            .empleado
+            .nombre
+            .substring(
+              0,
+              1
+            )
+        }}
+
+      </div>
+
+
+      <div class="employee-info">
+
+        <h2>
+
+          {{
+            datos()!
+              .empleado
+              .nombre
+          }}
+
+        </h2>
+
+
+        <p>
+
+          {{
+            datos()!
+              .empleado
+              .identificacion
+          }}
+
+          @if (
+            datos()!
+              .empleado
+              .area
+          ) {
+
+            ·
+
+            {{
+              datos()!
+                .empleado
+                .area
+            }}
+
+          }
+
+        </p>
+
+      </div>
+
+
+      <div class="schedule-info">
+
+        <span>
+          Jornada
+        </span>
+
+        <strong>
+
+          {{
+            datos()!
+              .jornada
+              .nombre
+          }}
+
+        </strong>
+
+        <small>
+
+          {{
+            formatearHora(
+              datos()!
+                .jornada
+                .horaEntrada
+            )
+          }}
+
+          -
+
+          {{
+            formatearHora(
+              datos()!
+                .jornada
+                .horaSalida
+            )
+          }}
+
+        </small>
+
+      </div>
+
+    </section>
+
+
+    <!-- =================================================
+         ESTADO DE HOY
+    ================================================== -->
+
+    <section class="today-panel">
+
+      <div class="today-header">
+
+        <div>
+
+          <span class="section-eyebrow">
+            JORNADA ACTUAL
+          </span>
+
+          <h2>
+            Hoy,
+            {{
+              formatearFecha(
+                datos()!
+                  .estadoHoy
+                  .fecha
+              )
+            }}
+          </h2>
+
+        </div>
+
+
+        @if (
+          datos()!
+            .estadoHoy
+            .completa
+        ) {
+
+          <span class="day-status complete">
+
+            Jornada completa
+
+          </span>
+
+        }
+        @else {
+
+          <span class="day-status pending">
+
+            Jornada en curso
+
+          </span>
+
+        }
+
+      </div>
+
+
+      <!-- SECUENCIA -->
+
+      <div class="marks-grid">
+
+        <!-- ENTRADA -->
+
+        <article
+          class="mark-card"
+          [class.registered]="
+            datos()!
+              .estadoHoy
+              .tieneEntrada
+          ">
+
+          <div class="mark-number">
+            1
+          </div>
+
+          <span class="mark-label">
+            Entrada
+          </span>
+
+          <strong>
+
+            {{
+              formatearHora(
+                obtenerMarcacion(
+                  'Entrada'
+                )?.hora
+              )
+            }}
+
+          </strong>
+
+
+          @if (
+            datos()!
+              .estadoHoy
+              .tieneEntrada
+          ) {
+
+            <small>
+
+              {{
+                datos()!
+                  .estadoHoy
+                  .estadoEntrada
+              }}
+
+              @if (
+                datos()!
+                  .estadoHoy
+                  .minutosAtraso >
+                0
+              ) {
+
+                ·
+                {{
+                  datos()!
+                    .estadoHoy
+                    .minutosAtraso
+                }}
+                min
+
+              }
+
+            </small>
+
+          }
+          @else {
+
+            <small>
+              Pendiente
+            </small>
+
+          }
+
+        </article>
+
+
+        <!-- INICIO ALMUERZO -->
+
+        <article
+          class="mark-card"
+          [class.registered]="
+            datos()!
+              .estadoHoy
+              .tieneInicioAlmuerzo
+          ">
+
+          <div class="mark-number">
+            2
+          </div>
+
+          <span class="mark-label">
+            Inicio almuerzo
+          </span>
+
+          <strong>
+
+            {{
+              formatearHora(
+                obtenerMarcacion(
+                  'InicioAlmuerzo'
+                )?.hora
+              )
+            }}
+
+          </strong>
+
+          <small>
+
+            {{
+              datos()!
+                .estadoHoy
+                .tieneInicioAlmuerzo
+                ? 'Registrada'
+                : 'Pendiente'
+            }}
+
+          </small>
+
+        </article>
+
+
+        <!-- FIN ALMUERZO -->
+
+        <article
+          class="mark-card"
+          [class.registered]="
+            datos()!
+              .estadoHoy
+              .tieneFinAlmuerzo
+          ">
+
+          <div class="mark-number">
+            3
+          </div>
+
+          <span class="mark-label">
+            Fin almuerzo
+          </span>
+
+          <strong>
+
+            {{
+              formatearHora(
+                obtenerMarcacion(
+                  'FinAlmuerzo'
+                )?.hora
+              )
+            }}
+
+          </strong>
+
+          <small>
+
+            {{
+              datos()!
+                .estadoHoy
+                .tieneFinAlmuerzo
+                ? 'Registrada'
+                : 'Pendiente'
+            }}
+
+          </small>
+
+        </article>
+
+
+        <!-- SALIDA -->
+
+        <article
+          class="mark-card"
+          [class.registered]="
+            datos()!
+              .estadoHoy
+              .tieneSalida
+          ">
+
+          <div class="mark-number">
+            4
+          </div>
+
+          <span class="mark-label">
+            Salida
+          </span>
+
+          <strong>
+
+            {{
+              formatearHora(
+                obtenerMarcacion(
+                  'Salida'
+                )?.hora
+              )
+            }}
+
+          </strong>
+
+          <small>
+
+            {{
+              datos()!
+                .estadoHoy
+                .tieneSalida
+                ? 'Registrada'
+                : 'Pendiente'
+            }}
+
+          </small>
+
+        </article>
+
+      </div>
+
+    </section>
+
+
+    <!-- =================================================
+         RESUMEN DEL PERÍODO
+    ================================================== -->
+
+    <div class="stats-grid">
+
+      <article class="stat-card">
+
+        <span>
+          Días registrados
+        </span>
+
+        <strong>
+          {{ diasRegistrados() }}
+        </strong>
+
+      </article>
+
+
+      <article class="stat-card">
+
+        <span>
+          Jornadas completas
+        </span>
+
+        <strong>
+          {{ diasCompletos() }}
+        </strong>
+
+      </article>
+
+
+      <article class="stat-card">
+
+        <span>
+          Atrasos
+        </span>
+
+        <strong
+          [class.danger]="
+            atrasos() > 0
+          ">
+
+          {{ atrasos() }}
+
+        </strong>
+
+      </article>
+
+
+      <article class="stat-card">
+
+        <span>
+          Marcaciones
+        </span>
+
+        <strong>
+          {{ totalMarcaciones() }}
+        </strong>
+
+      </article>
+
+    </div>
+
+
+    <!-- =================================================
+         HISTORIAL
+    ================================================== -->
+
+    <section class="history-panel">
+
+      <div class="history-header">
+
+        <div>
+
+          <h2>
+            Historial
+          </h2>
+
+          <p>
+            Consulte sus marcaciones por período.
+          </p>
+
+        </div>
+
+
+        <div class="filters">
+
+          <div class="field">
+
+            <label>
+              Desde
+            </label>
+
+            <input
+              type="date"
+              [ngModel]="fechaDesde()"
+              (ngModelChange)="
+                fechaDesde.set(
+                  $event
+                )
+              ">
+
+          </div>
+
+
+          <div class="field">
+
+            <label>
+              Hasta
+            </label>
+
+            <input
+              type="date"
+              [ngModel]="fechaHasta()"
+              (ngModelChange)="
+                fechaHasta.set(
+                  $event
+                )
+              ">
+
+          </div>
+
+
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="cargando()"
+            (click)="consultar()">
+
+            {{
+              cargando()
+                ? 'Consultando...'
+                : 'Consultar'
+            }}
+
+          </button>
+
+        </div>
+
+      </div>
+
+
+      @if (
+        datos()!
+          .dias
+          .length ===
+        0
+      ) {
+
+        <div class="empty-state">
+
+          No existen marcaciones para
+          el período seleccionado.
+
+        </div>
+
+      }
+      @else {
+
+        <div class="days-list">
+
+          @for (
+            dia
+            of datos()!.dias;
+            track dia.fecha
+          ) {
+
+            <article class="day-card">
+
+              <div class="day-header">
+
+                <div>
+
+                  <strong>
+
+                    {{
+                      formatearFecha(
+                        dia.fecha
+                      )
+                    }}
+
+                  </strong>
+
+
+                  @if (
+                    dia.estadoEntrada
+                  ) {
+
+                    <span
+                      class="entry-status"
+                      [class.delay]="
+                        dia.estadoEntrada ===
+                        'Atraso'
+                      ">
+
+                      {{
+                        dia.estadoEntrada
+                      }}
+
+                      @if (
+                        dia.minutosAtraso >
+                        0
+                      ) {
+
+                        ·
+                        {{
+                          dia.minutosAtraso
+                        }}
+                        min
+
+                      }
+
+                    </span>
+
+                  }
+
+                </div>
+
+
+                <span
+                  class="day-result"
+                  [class.complete]="
+                    dia.completa
+                  ">
+
+                  {{
+                    dia.completa
+                      ? 'Completa'
+                      : 'Incompleta'
+                  }}
+
+                </span>
+
+              </div>
+
+
+              <div class="day-marks">
+
+                @for (
+                  marcacion
+                  of dia.marcaciones;
+                  track marcacion.idMarcacion
+                ) {
+
+                  <div
+                    class="history-mark"
+                    [class.cancelled]="
+                      marcacion
+                        .estadoMarcacion ===
+                      'Anulada'
+                    ">
+
+                    <div>
+
+                      <span>
+                        {{
+                          nombreTipo(
+                            marcacion
+                              .tipoMarcacion
+                          )
+                        }}
+                      </span>
+
+                      <strong>
+
+                        {{
+                          formatearHora(
+                            marcacion.hora
+                          )
+                        }}
+
+                      </strong>
+
+                    </div>
+
+
+                    <div class="mark-meta">
+
+                      <span
+                        class="origin"
+                        [class.facial]="
+                          marcacion.esFacial
+                        ">
+
+                        {{
+                          marcacion.esFacial
+                            ? 'Facial'
+                            : 'Manual'
+                        }}
+
+                      </span>
+
+
+                      @if (
+                        marcacion
+                          .estadoMarcacion ===
+                        'Anulada'
+                      ) {
+
+                        <span class="cancelled-badge">
+
+                          Anulada
+
+                        </span>
+
+                      }
+
+                    </div>
+
+                  </div>
+
+                }
+
+              </div>
+
+            </article>
+
+          }
+
+        </div>
+
+      }
+
+    </section>
+
+  }
+
+</section>

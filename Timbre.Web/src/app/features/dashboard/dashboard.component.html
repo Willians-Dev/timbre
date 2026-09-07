@@ -1,0 +1,683 @@
+<section class="dashboard-page">
+
+  <!-- =================================================
+       HEADER
+  ================================================== -->
+
+  <div class="page-header">
+
+    <div>
+
+      <span class="eyebrow">
+        CONTROL DE ASISTENCIA
+      </span>
+
+      <h1>
+        Dashboard
+      </h1>
+
+      <p>
+        Resumen operativo de la jornada actual.
+      </p>
+
+    </div>
+
+
+    <div class="header-actions">
+
+      @if (
+        resumen()
+      ) {
+
+        <div class="last-update">
+
+          <span>
+            Fecha
+          </span>
+
+          <strong>
+            {{
+              resumen()!.fecha
+            }}
+          </strong>
+
+        </div>
+
+      }
+
+
+      <button
+        type="button"
+        class="refresh-button"
+        [disabled]="cargando()"
+        (click)="cargar()">
+
+        {{
+          cargando()
+            ? 'Actualizando...'
+            : 'Actualizar'
+        }}
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  @if (
+    cargando() &&
+    !resumen()
+  ) {
+
+    <div class="loading-state">
+
+      Cargando dashboard...
+
+    </div>
+
+  }
+  @else if (
+    resumen()
+  ) {
+
+    <!-- =================================================
+         MÉTRICAS PRINCIPALES
+    ================================================== -->
+
+    <div class="stats-grid">
+
+      <article class="stat-card">
+
+        <div class="stat-top">
+
+          <span class="stat-label">
+            Empleados activos
+          </span>
+
+          <span class="stat-icon">
+            PE
+          </span>
+
+        </div>
+
+
+        <strong class="stat-value">
+
+          {{
+            resumen()!
+              .empleadosActivos
+          }}
+
+        </strong>
+
+
+        <span class="stat-note">
+
+          Personal habilitado
+
+        </span>
+
+      </article>
+
+
+      <article class="stat-card">
+
+        <div class="stat-top">
+
+          <span class="stat-label">
+            Presentes hoy
+          </span>
+
+          <span class="stat-icon">
+            ✓
+          </span>
+
+        </div>
+
+
+        <strong class="stat-value">
+
+          {{
+            resumen()!
+              .presentesHoy
+          }}
+
+        </strong>
+
+
+        <span class="stat-note">
+
+          Con entrada registrada
+
+        </span>
+
+      </article>
+
+
+      <article class="stat-card">
+
+        <div class="stat-top">
+
+          <span class="stat-label">
+            Atrasos
+          </span>
+
+          <span class="stat-icon warning">
+            !
+          </span>
+
+        </div>
+
+
+        <strong class="stat-value">
+
+          {{
+            resumen()!
+              .atrasos
+          }}
+
+        </strong>
+
+
+        <span class="stat-note">
+
+          Entradas fuera de tolerancia
+
+        </span>
+
+      </article>
+
+
+      <article class="stat-card">
+
+        <div class="stat-top">
+
+          <span class="stat-label">
+            Rostros enrolados
+          </span>
+
+          <span class="stat-icon">
+            AI
+          </span>
+
+        </div>
+
+
+        <strong class="stat-value">
+
+          {{
+            resumen()!
+              .rostrosEnrolados
+          }}
+
+        </strong>
+
+
+        <span class="stat-note">
+
+          Empleados con reconocimiento facial
+
+        </span>
+
+      </article>
+
+    </div>
+
+
+    <!-- =================================================
+         MÉTRICAS SECUNDARIAS
+    ================================================== -->
+
+    <div class="secondary-grid">
+
+      <article class="mini-card">
+
+        <span>
+          Marcaciones hoy
+        </span>
+
+        <strong>
+
+          {{
+            resumen()!
+              .marcacionesHoy
+          }}
+
+        </strong>
+
+      </article>
+
+
+      <article class="mini-card">
+
+        <span>
+          Jornadas completas
+        </span>
+
+        <strong>
+
+          {{
+            resumen()!
+              .jornadasCompletas
+          }}
+
+        </strong>
+
+      </article>
+
+
+      <article class="mini-card">
+
+        <span>
+          Sin marcación
+        </span>
+
+        <strong>
+
+          {{
+            resumen()!
+              .sinMarcacion
+          }}
+
+        </strong>
+
+      </article>
+
+
+      <article class="mini-card">
+
+        <span>
+          Facial
+        </span>
+
+        <strong>
+
+          {{
+            resumen()!
+              .faciales
+          }}
+
+        </strong>
+
+      </article>
+
+
+      <article class="mini-card">
+
+        <span>
+          Manual
+        </span>
+
+        <strong>
+
+          {{
+            resumen()!
+              .manuales
+          }}
+
+        </strong>
+
+      </article>
+
+    </div>
+
+
+    <!-- =================================================
+         CONTENIDO
+    ================================================== -->
+
+    <div class="content-grid">
+
+
+      <!-- ÚLTIMAS MARCACIONES -->
+
+      <section class="panel">
+
+        <div class="panel-header">
+
+          <div>
+
+            <h2>
+              Últimas marcaciones
+            </h2>
+
+            <p>
+              Actividad más reciente de la jornada.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        @if (
+          resumen()!
+            .ultimasMarcaciones
+            .length === 0
+        ) {
+
+          <div class="empty-state">
+
+            Todavía no existen marcaciones
+            registradas hoy.
+
+          </div>
+
+        }
+        @else {
+
+          <div class="table-wrapper">
+
+            <table>
+
+              <thead>
+
+                <tr>
+
+                  <th>
+                    Empleado
+                  </th>
+
+                  <th>
+                    Hora
+                  </th>
+
+                  <th>
+                    Marcación
+                  </th>
+
+                  <th>
+                    Origen
+                  </th>
+
+                  <th>
+                    Estado
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                @for (
+                  marcacion
+                  of resumen()!
+                    .ultimasMarcaciones;
+                  track marcacion.idMarcacion
+                ) {
+
+                  <tr>
+
+                    <td>
+
+                      <strong>
+
+                        {{
+                          marcacion.empleado
+                        }}
+
+                      </strong>
+
+                    </td>
+
+
+                    <td>
+
+                      <span class="time">
+
+                        {{
+                          marcacion.hora
+                        }}
+
+                      </span>
+
+                    </td>
+
+
+                    <td>
+
+                      <span class="type-badge">
+
+                        {{
+                          nombreTipo(
+                            marcacion
+                              .tipoMarcacion
+                          )
+                        }}
+
+                      </span>
+
+                    </td>
+
+
+                    <td>
+
+                      <span
+                        class="origin-badge"
+                        [class.facial]="
+                          marcacion.origen ===
+                          'Facial'
+                        "
+                        [class.manual]="
+                          marcacion.origen ===
+                          'Manual'
+                        ">
+
+                        {{
+                          marcacion.origen
+                        }}
+
+                      </span>
+
+                    </td>
+
+
+                    <td>
+
+                      @if (
+                        marcacion.estadoEntrada
+                      ) {
+
+                        <span
+                          class="entry-state"
+                          [class.delay]="
+                            marcacion.estadoEntrada ===
+                            'Atraso'
+                          ">
+
+                          {{
+                            marcacion
+                              .estadoEntrada
+                          }}
+
+                        </span>
+
+                      }
+                      @else {
+
+                        <span class="neutral">
+                          —
+                        </span>
+
+                      }
+
+                    </td>
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        }
+
+      </section>
+
+
+      <!-- ESTADO GENERAL -->
+
+      <aside class="panel status-panel">
+
+        <div class="panel-header">
+
+          <div>
+
+            <h2>
+              Estado del día
+            </h2>
+
+            <p>
+              Resumen de cobertura actual.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="status-list">
+
+          <div class="status-row">
+
+            <span>
+              Presentes
+            </span>
+
+            <strong>
+
+              {{
+                resumen()!
+                  .presentesHoy
+              }}
+
+            </strong>
+
+          </div>
+
+
+          <div class="status-row">
+
+            <span>
+              Sin marcación
+            </span>
+
+            <strong>
+
+              {{
+                resumen()!
+                  .sinMarcacion
+              }}
+
+            </strong>
+
+          </div>
+
+
+          <div class="status-row">
+
+            <span>
+              Jornadas completas
+            </span>
+
+            <strong>
+
+              {{
+                resumen()!
+                  .jornadasCompletas
+              }}
+
+            </strong>
+
+          </div>
+
+
+          <div class="status-row">
+
+            <span>
+              Atrasos
+            </span>
+
+            <strong class="danger-value">
+
+              {{
+                resumen()!
+                  .atrasos
+              }}
+
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="origin-summary">
+
+          <span class="section-label">
+            Origen de marcaciones
+          </span>
+
+
+          <div class="origin-row">
+
+            <div>
+
+              <span class="dot facial">
+              </span>
+
+              Facial
+
+            </div>
+
+
+            <strong>
+
+              {{
+                resumen()!
+                  .faciales
+              }}
+
+            </strong>
+
+          </div>
+
+
+          <div class="origin-row">
+
+            <div>
+
+              <span class="dot manual">
+              </span>
+
+              Manual
+
+            </div>
+
+
+            <strong>
+
+              {{
+                resumen()!
+                  .manuales
+              }}
+
+            </strong>
+
+          </div>
+
+        </div>
+
+      </aside>
+
+    </div>
+
+  }
+
+</section>

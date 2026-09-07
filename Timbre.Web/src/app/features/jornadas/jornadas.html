@@ -1,0 +1,832 @@
+<section class="page">
+
+  <!-- ===============================================
+       HEADER
+  ================================================ -->
+  <div class="page-header">
+
+    <div>
+
+      <span class="eyebrow">
+        CONFIGURACIÓN
+      </span>
+
+      <h1>
+        Jornadas laborales
+      </h1>
+
+      <p>
+        Configure los horarios y días laborables
+        utilizados para el registro de asistencia.
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="btn-primary"
+      (click)="nuevaJornada()">
+
+      + Nueva jornada
+
+    </button>
+
+  </div>
+
+
+  <!-- ===============================================
+       MENSAJE
+  ================================================ -->
+
+  @if (mensajeExito()) {
+
+    <div class="alert success">
+      {{ mensajeExito() }}
+    </div>
+
+  }
+
+
+  @if (
+    mensajeError() &&
+    !mostrarModal()
+  ) {
+
+    <div class="alert error">
+      {{ mensajeError() }}
+    </div>
+
+  }
+
+
+  <!-- ===============================================
+       FILTROS
+  ================================================ -->
+
+  <div class="toolbar">
+
+    <div class="search">
+
+      <span>
+        ⌕
+      </span>
+
+      <input
+        type="text"
+        placeholder="Buscar jornada..."
+        [ngModel]="terminoBusqueda()"
+        (ngModelChange)="
+          terminoBusqueda.set($event)
+        ">
+
+    </div>
+
+
+    <span class="total">
+
+      {{
+        jornadasFiltradas().length
+      }}
+
+      jornada(s)
+
+    </span>
+
+  </div>
+
+
+  <!-- ===============================================
+       TABLA
+  ================================================ -->
+
+  <div class="card">
+
+    @if (cargando()) {
+
+      <div class="state">
+        Cargando jornadas...
+      </div>
+
+    }
+    @else if (
+      jornadasFiltradas().length === 0
+    ) {
+
+      <div class="state">
+
+        No existen jornadas para mostrar.
+
+      </div>
+
+    }
+    @else {
+
+      <div class="table-wrapper">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>
+                Jornada
+              </th>
+
+              <th>
+                Entrada
+              </th>
+
+              <th>
+                Almuerzo
+              </th>
+
+              <th>
+                Salida
+              </th>
+
+              <th>
+                Tolerancia
+              </th>
+
+              <th>
+                Días
+              </th>
+
+              <th>
+                Estado
+              </th>
+
+              <th class="actions-column">
+                Acciones
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            @for (
+              jornada
+              of jornadasFiltradas();
+              track jornada.idJornada
+            ) {
+
+              <tr>
+
+                <td>
+
+                  <strong>
+                    {{ jornada.nombre }}
+                  </strong>
+
+                </td>
+
+
+                <td>
+
+                  <span class="time">
+
+                    {{
+                      jornada.horaEntrada
+                        .substring(0, 5)
+                    }}
+
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  <span class="time-range">
+
+                    {{
+                      jornada
+                        .horaInicioAlmuerzo
+                        .substring(0, 5)
+                    }}
+
+                    —
+
+                    {{
+                      jornada
+                        .horaFinAlmuerzo
+                        .substring(0, 5)
+                    }}
+
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  <span class="time">
+
+                    {{
+                      jornada.horaSalida
+                        .substring(0, 5)
+                    }}
+
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  {{
+                    jornada
+                      .toleranciaEntradaMinutos
+                  }}
+
+                  min
+
+                </td>
+
+
+                <td>
+
+                  <div class="days">
+
+                    @if (jornada.lunes) {
+                      <span>L</span>
+                    }
+
+                    @if (jornada.martes) {
+                      <span>M</span>
+                    }
+
+                    @if (jornada.miercoles) {
+                      <span>X</span>
+                    }
+
+                    @if (jornada.jueves) {
+                      <span>J</span>
+                    }
+
+                    @if (jornada.viernes) {
+                      <span>V</span>
+                    }
+
+                    @if (jornada.sabado) {
+                      <span>S</span>
+                    }
+
+                    @if (jornada.domingo) {
+                      <span>D</span>
+                    }
+
+                  </div>
+
+                </td>
+
+
+                <td>
+
+                  <span
+                    class="badge"
+                    [class.active]="
+                      jornada.activo
+                    "
+                    [class.inactive]="
+                      !jornada.activo
+                    ">
+
+                    {{
+                      jornada.activo
+                        ? 'Activa'
+                        : 'Inactiva'
+                    }}
+
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  <div class="actions">
+
+                    <button
+                      type="button"
+                      class="btn-action"
+                      (click)="editar(jornada)">
+
+                      Editar
+
+                    </button>
+
+
+                    <button
+                      type="button"
+                      class="btn-action"
+                      [class.danger]="
+                        jornada.activo
+                      "
+                      (click)="
+                        cambiarEstado(
+                          jornada
+                        )
+                      ">
+
+                      {{
+                        jornada.activo
+                          ? 'Desactivar'
+                          : 'Activar'
+                      }}
+
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    }
+
+  </div>
+
+
+  <!-- ===============================================
+       MODAL
+  ================================================ -->
+
+  @if (mostrarModal()) {
+
+    <div
+      class="modal-backdrop"
+      (click)="cerrarModal()">
+
+
+      <div
+        class="modal"
+        (click)="
+          $event.stopPropagation()
+        ">
+
+
+        <!-- HEADER -->
+
+        <div class="modal-header">
+
+          <div>
+
+            <span class="eyebrow">
+
+              {{
+                editando()
+                  ? 'EDITAR'
+                  : 'NUEVA'
+              }}
+
+              JORNADA
+
+            </span>
+
+
+            <h2>
+
+              {{
+                editando()
+                  ? 'Editar jornada'
+                  : 'Crear jornada'
+              }}
+
+            </h2>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="modal-close"
+            (click)="cerrarModal()">
+
+            ×
+
+          </button>
+
+        </div>
+
+
+        <!-- BODY -->
+
+        <div class="modal-body">
+
+
+          @if (mensajeError()) {
+
+            <div class="alert error">
+              {{ mensajeError() }}
+            </div>
+
+          }
+
+
+          <!-- NOMBRE -->
+
+          <div class="field full">
+
+            <label>
+              Nombre de la jornada
+            </label>
+
+
+            <input
+              type="text"
+              maxlength="150"
+              placeholder="Ej. Jornada administrativa"
+              [ngModel]="
+                formulario().nombre
+              "
+              (ngModelChange)="
+                actualizarCampo(
+                  'nombre',
+                  $event
+                )
+              ">
+
+          </div>
+
+
+          <!-- HORARIOS -->
+
+          <div class="section-title">
+            Horario laboral
+          </div>
+
+
+          <div class="form-grid four">
+
+            <div class="field">
+
+              <label>
+                Entrada
+              </label>
+
+              <input
+                type="time"
+                [ngModel]="
+                  formulario()
+                    .horaEntrada
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'horaEntrada',
+                    $event
+                  )
+                ">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>
+                Inicio almuerzo
+              </label>
+
+              <input
+                type="time"
+                [ngModel]="
+                  formulario()
+                    .horaInicioAlmuerzo
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'horaInicioAlmuerzo',
+                    $event
+                  )
+                ">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>
+                Fin almuerzo
+              </label>
+
+              <input
+                type="time"
+                [ngModel]="
+                  formulario()
+                    .horaFinAlmuerzo
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'horaFinAlmuerzo',
+                    $event
+                  )
+                ">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>
+                Salida
+              </label>
+
+              <input
+                type="time"
+                [ngModel]="
+                  formulario()
+                    .horaSalida
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'horaSalida',
+                    $event
+                  )
+                ">
+
+            </div>
+
+          </div>
+
+
+          <!-- TOLERANCIA -->
+
+          <div class="field tolerance">
+
+            <label>
+              Tolerancia de entrada
+            </label>
+
+
+            <div class="input-unit">
+
+              <input
+                type="number"
+                min="0"
+                max="120"
+                [ngModel]="
+                  formulario()
+                    .toleranciaEntradaMinutos
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'toleranciaEntradaMinutos',
+                    $event
+                  )
+                ">
+
+              <span>
+                minutos
+              </span>
+
+            </div>
+
+
+            <small>
+              Tiempo adicional permitido para considerar
+              la entrada como puntual.
+            </small>
+
+          </div>
+
+
+          <!-- DÍAS -->
+
+          <div class="section-title">
+            Días laborables
+          </div>
+
+
+          <div class="week-days">
+
+            <label>
+
+              <input
+                type="checkbox"
+                [ngModel]="
+                  formulario().lunes
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'lunes',
+                    $event
+                  )
+                ">
+
+              <span>
+                Lun
+              </span>
+
+            </label>
+
+
+            <label>
+
+              <input
+                type="checkbox"
+                [ngModel]="
+                  formulario().martes
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'martes',
+                    $event
+                  )
+                ">
+
+              <span>
+                Mar
+              </span>
+
+            </label>
+
+
+            <label>
+
+              <input
+                type="checkbox"
+                [ngModel]="
+                  formulario().miercoles
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'miercoles',
+                    $event
+                  )
+                ">
+
+              <span>
+                Mié
+              </span>
+
+            </label>
+
+
+            <label>
+
+              <input
+                type="checkbox"
+                [ngModel]="
+                  formulario().jueves
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'jueves',
+                    $event
+                  )
+                ">
+
+              <span>
+                Jue
+              </span>
+
+            </label>
+
+
+            <label>
+
+              <input
+                type="checkbox"
+                [ngModel]="
+                  formulario().viernes
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'viernes',
+                    $event
+                  )
+                ">
+
+              <span>
+                Vie
+              </span>
+
+            </label>
+
+
+            <label>
+
+              <input
+                type="checkbox"
+                [ngModel]="
+                  formulario().sabado
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'sabado',
+                    $event
+                  )
+                ">
+
+              <span>
+                Sáb
+              </span>
+
+            </label>
+
+
+            <label>
+
+              <input
+                type="checkbox"
+                [ngModel]="
+                  formulario().domingo
+                "
+                (ngModelChange)="
+                  actualizarCampo(
+                    'domingo',
+                    $event
+                  )
+                ">
+
+              <span>
+                Dom
+              </span>
+
+            </label>
+
+          </div>
+
+
+          @if (editando()) {
+
+            <div class="status-control">
+
+              <label>
+
+                <input
+                  type="checkbox"
+                  [ngModel]="
+                    formulario().activo
+                  "
+                  (ngModelChange)="
+                    actualizarCampo(
+                      'activo',
+                      $event
+                    )
+                  ">
+
+                Jornada activa
+
+              </label>
+
+            </div>
+
+          }
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="modal-footer">
+
+          <button
+            type="button"
+            class="btn-secondary"
+            [disabled]="guardando()"
+            (click)="cerrarModal()">
+
+            Cancelar
+
+          </button>
+
+
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="guardando()"
+            (click)="guardar()">
+
+            {{
+              guardando()
+                ? 'Guardando...'
+                : editando()
+                  ? 'Guardar cambios'
+                  : 'Crear jornada'
+            }}
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+</section>

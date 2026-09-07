@@ -1,0 +1,220 @@
+# =========================================================
+# SISTEMA OPERATIVO
+# =========================================================
+
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+
+# =========================================================
+# EDITORES / IDE
+# =========================================================
+
+.vscode/
+.idea/
+.vs/
+
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+
+# =========================================================
+# .NET
+# =========================================================
+
+**/bin/
+**/obj/
+
+*.dll
+*.exe
+*.pdb
+*.cache
+
+# Publish
+**/publish/
+**/Published/
+
+# Test
+TestResults/
+**/TestResults/
+
+# Coverage
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+
+
+# =========================================================
+# CONFIGURACIÓN / SECRETOS
+# =========================================================
+
+.env
+.env.*
+!.env.example
+
+secrets.json
+**/secrets.json
+
+# User secrets locales
+**/secrets/
+**/UserSecrets/
+
+# Configuraciones locales
+appsettings.Local.json
+appsettings.*.Local.json
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+appsettings.json
+**/appsettings.json
+**/appsettings.Development.json
+
+# Configuraciones de desarrollo con secretos locales
+appsettings.Development.local.json
+**/appsettings.Development.local.json
+
+# Certificados / llaves
+*.pfx
+*.p12
+*.pem
+*.key
+*.crt
+*.cer
+
+# Claves SSH
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+
+
+# =========================================================
+# PYTHON
+# =========================================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+
+# =========================================================
+# IA / MACHINE LEARNING
+# =========================================================
+
+# Modelos descargados
+models/
+*.onnx
+*.pth
+*.pt
+*.ckpt
+
+# Exceptuar código Python dentro de app/models
+!Timbre.FaceAI/app/models/
+!Timbre.FaceAI/app/models/**
+
+# Archivos temporales
+temp/
+tmp/
+
+# Datos / embeddings biométricos locales
+*.npy
+*.npz
+
+# Imágenes de pruebas locales
+*.jpg
+*.jpeg
+*.png
+*.webp
+
+# Si el frontend contiene imágenes institucionales
+# que SÍ deben versionarse, puedes exceptuarlas así:
+!Timbre.Web/src/assets/**/*.png
+!Timbre.Web/src/assets/**/*.jpg
+!Timbre.Web/src/assets/**/*.jpeg
+!Timbre.Web/src/assets/**/*.webp
+
+
+# =========================================================
+# LOGS
+# =========================================================
+
+logs/
+*.log
+
+
+# =========================================================
+# FRONTEND - ANGULAR / NODE
+# =========================================================
+
+node_modules/
+dist/
+.angular/
+.cache/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+
+# =========================================================
+# ARCHIVOS DE DESARROLLO LOCAL
+# =========================================================
+
+*.tmp
+*.bak
+*.swp
+*.orig
+
+
+# =========================================================
+# BASE DE DATOS / RESPALDOS
+# =========================================================
+
+*.sql
+*.dump
+*.backup
+*.bak
+
+backups/
+backup/
+
+
+# =========================================================
+# ARCHIVOS COMPRIMIDOS / EXPORTACIONES
+# =========================================================
+
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+
+# =========================================================
+# WINDOWS / POWERSHELL
+# =========================================================
+
+*.lnk

@@ -1,0 +1,104 @@
+@TimbreApi_HostAddress = http://localhost:5044
+
+### Obtener empleados
+GET {{TimbreApi_HostAddress}}/api/empleados
+Accept: application/json
+
+###
+
+### Crear empleado
+POST {{TimbreApi_HostAddress}}/api/empleados
+Content-Type: application/json
+
+{
+  "identificacion": "0102030405",
+  "nombres": "Juan Carlos",
+  "apellidos": "Perez Lopez",
+  "correo": "jperez@empresa.com",
+  "telefono": "0999999999",
+  "area": "Administracion",
+  "cargo": "Asistente",
+  "fechaIngreso": "2026-08-23",
+  "idJornada": 1
+}
+
+### ========================================================
+### OBTENER JORNADAS
+### ========================================================
+
+GET http://localhost:5044/api/jornadas
+Accept: application/json
+
+###
+
+### OBTENER JORNADA POR ID
+GET http://localhost:5044/api/jornadas/1
+Accept: application/json
+
+###
+
+### CREAR JORNADA
+POST http://localhost:5044/api/jornadas
+Content-Type: application/json
+
+{
+  "nombre": "Jornada Administrativa",
+  "horaEntrada": "08:30:00",
+  "horaInicioAlmuerzo": "13:00:00",
+  "horaFinAlmuerzo": "14:00:00",
+  "horaSalida": "17:30:00",
+  "toleranciaEntradaMinutos": 10,
+  "lunes": true,
+  "martes": true,
+  "miercoles": true,
+  "jueves": true,
+  "viernes": true,
+  "sabado": false,
+  "domingo": false
+}
+
+###
+
+### ACTUALIZAR JORNADA
+PUT http://localhost:5044/api/jornadas/2
+Content-Type: application/json
+
+{
+  "nombre": "Jornada Administrativa",
+  "horaEntrada": "08:30:00",
+  "horaInicioAlmuerzo": "13:00:00",
+  "horaFinAlmuerzo": "14:00:00",
+  "horaSalida": "17:30:00",
+  "toleranciaEntradaMinutos": 15,
+  "lunes": true,
+  "martes": true,
+  "miercoles": true,
+  "jueves": true,
+  "viernes": true,
+  "sabado": false,
+  "domingo": false,
+  "activo": true
+}
+
+###
+
+### DESACTIVAR JORNADA
+PATCH http://localhost:5044/api/jornadas/2/estado?activo=false
+
+### LOGIN
+
+POST http://localhost:5044/api/auth/login
+Content-Type: application/json
+
+{
+  "nombreUsuario": "admin",
+  "password": "Admin123*"
+}
+
+
+@token = PEGA_AQUI_TU_TOKEN
+
+### Marcaciones de hoy
+GET http://localhost:5044/api/marcaciones/hoy
+Authorization: Bearer {{token}}
+Accept: application/json

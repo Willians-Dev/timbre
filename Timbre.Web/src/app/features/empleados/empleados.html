@@ -1,0 +1,1169 @@
+<section class="page">
+
+  <!-- ===================================================
+       ENCABEZADO
+  ==================================================== -->
+  <header class="page-header">
+
+    <div>
+
+      <span class="page-eyebrow">
+        ADMINISTRACIÓN
+      </span>
+
+      <h1>
+        Empleados
+      </h1>
+
+      <p>
+        Gestión de empleados y enrolamiento para reconocimiento facial.
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="btn-primary"
+      (click)="nuevoEmpleado()">
+
+      <span class="button-plus">
+        +
+      </span>
+
+      Nuevo empleado
+
+    </button>
+
+  </header>
+
+
+  <!-- ===================================================
+       LISTADO
+  ==================================================== -->
+  <section class="card">
+
+    <div class="toolbar">
+
+      <div class="search-box">
+
+        <span class="search-icon">
+          ⌕
+        </span>
+
+        <input
+          type="search"
+          [(ngModel)]="filtro"
+          (ngModelChange)="aplicarFiltro()"
+          placeholder="Buscar por nombre, identificación, área o cargo"
+          aria-label="Buscar empleados">
+
+      </div>
+
+
+      <button
+        type="button"
+        class="btn-secondary"
+        [disabled]="cargando"
+        (click)="cargarEmpleados()">
+
+        @if (cargando) {
+          Actualizando...
+        }
+        @else {
+          Actualizar
+        }
+
+      </button>
+
+    </div>
+
+
+    @if (cargando) {
+
+      <div class="state-container">
+
+        <div class="spinner"></div>
+
+        <p>
+          Consultando empleados...
+        </p>
+
+      </div>
+
+    }
+    @else if (
+      empleadosFiltrados.length === 0
+    ) {
+
+      <div class="state-container">
+
+        <div class="empty-icon">
+          👥
+        </div>
+
+        <h3>
+          No se encontraron empleados
+        </h3>
+
+        <p>
+          No existen registros que coincidan con los criterios de búsqueda.
+        </p>
+
+      </div>
+
+    }
+    @else {
+
+      <div class="table-wrapper">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>
+                Empleado
+              </th>
+
+              <th>
+                Identificación
+              </th>
+
+              <th>
+                Área / Cargo
+              </th>
+
+              <th>
+                Jornada
+              </th>
+
+              <th>
+                Reconocimiento facial
+              </th>
+
+              <th>
+                Estado
+              </th>
+
+              <th class="actions-column">
+                Acciones
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            @for (
+              empleado
+              of empleadosFiltrados;
+              track empleado.idEmpleado
+            ) {
+
+              <tr>
+
+                <td>
+
+                  <div class="employee-cell">
+
+                    <div class="employee-avatar">
+
+                      {{
+                        empleado.nombres
+                          ?.charAt(0)
+                          ?.toUpperCase()
+                      }}
+
+                      {{
+                        empleado.apellidos
+                          ?.charAt(0)
+                          ?.toUpperCase()
+                      }}
+
+                    </div>
+
+
+                    <div>
+
+                      <strong>
+                        {{ empleado.nombreCompleto }}
+                      </strong>
+
+                      <span>
+
+                        {{
+                          empleado.correo ||
+                          'Sin correo registrado'
+                        }}
+
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </td>
+
+
+                <td>
+
+                  <span class="main-value">
+                    {{ empleado.identificacion }}
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  <div class="two-lines">
+
+                    <strong>
+
+                      {{
+                        empleado.area ||
+                        'Sin área'
+                      }}
+
+                    </strong>
+
+                    <span>
+
+                      {{
+                        empleado.cargo ||
+                        'Sin cargo'
+                      }}
+
+                    </span>
+
+                  </div>
+
+                </td>
+
+
+                <td>
+
+                  <span class="main-value">
+
+                    {{
+                      empleado.jornada ||
+                      'Sin jornada asignada'
+                    }}
+
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  @if (
+                    empleado.consultandoRostro
+                  ) {
+
+                    <span class="badge badge-neutral">
+                      Consultando...
+                    </span>
+
+                  }
+                  @else if (
+                    empleado.rostroEnrolado
+                  ) {
+
+                    <span class="badge badge-success">
+                      ● Enrolado
+                    </span>
+
+                  }
+                  @else {
+
+                    <span class="badge badge-warning">
+                      ● Pendiente
+                    </span>
+
+                  }
+
+                </td>
+
+
+                <td>
+
+                  @if (
+                    empleado.activo
+                  ) {
+
+                    <span class="badge badge-success">
+                      Activo
+                    </span>
+
+                  }
+                  @else {
+
+                    <span class="badge badge-neutral">
+                      Inactivo
+                    </span>
+
+                  }
+
+                </td>
+
+
+                <td>
+
+                  <div class="actions">
+
+                    <button
+                      type="button"
+                      class="action-button"
+                      (click)="editarEmpleado(empleado)">
+
+                      Editar
+
+                    </button>
+
+
+                    <button
+                      type="button"
+                      class="action-button facial"
+                      [disabled]="
+                        !empleado.activo ||
+                        empleado.consultandoRostro
+                      "
+                      (click)="enrolarRostro(empleado)">
+
+                      @if (
+                        empleado.consultandoRostro
+                      ) {
+
+                        ...
+
+                      }
+                      @else if (
+                        empleado.rostroEnrolado
+                      ) {
+
+                        Re-enrolar
+
+                      }
+                      @else {
+
+                        Enrolar
+
+                      }
+
+                    </button>
+
+
+                    <button
+                      type="button"
+                      class="action-button"
+                      [class.danger]="empleado.activo"
+                      [class.success]="!empleado.activo"
+                      (click)="cambiarEstado(empleado)">
+
+                      {{
+                        empleado.activo
+                          ? 'Desactivar'
+                          : 'Activar'
+                      }}
+
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    }
+
+  </section>
+
+
+  <!-- ===================================================
+       NUEVO / EDITAR
+  ==================================================== -->
+  <app-modal
+    [abierto]="modalEmpleadoAbierto"
+    [titulo]="
+      modoEdicion
+        ? 'Editar empleado'
+        : 'Nuevo empleado'
+    "
+    ancho="760px"
+    (cerrarModal)="cerrarModalEmpleado()">
+
+    <form
+      class="employee-form"
+      (ngSubmit)="guardarEmpleado()">
+
+      <div class="form-section">
+
+        <h3>
+          Información personal
+        </h3>
+
+        <p>
+          Datos principales de identificación del empleado.
+        </p>
+
+      </div>
+
+
+      <div class="form-grid">
+
+        <div class="form-field">
+
+          <label for="identificacion">
+            Identificación *
+          </label>
+
+          <input
+            id="identificacion"
+            name="identificacion"
+            type="text"
+            [(ngModel)]="formulario.identificacion"
+            [disabled]="guardando"
+            maxlength="20"
+            required>
+
+        </div>
+
+
+        <div class="form-field">
+
+          <label for="fechaIngreso">
+            Fecha de ingreso *
+          </label>
+
+          <input
+            id="fechaIngreso"
+            name="fechaIngreso"
+            type="date"
+            [(ngModel)]="formulario.fechaIngreso"
+            [disabled]="guardando"
+            required>
+
+        </div>
+
+
+        <div class="form-field">
+
+          <label for="nombres">
+            Nombres *
+          </label>
+
+          <input
+            id="nombres"
+            name="nombres"
+            type="text"
+            [(ngModel)]="formulario.nombres"
+            [disabled]="guardando"
+            required>
+
+        </div>
+
+
+        <div class="form-field">
+
+          <label for="apellidos">
+            Apellidos *
+          </label>
+
+          <input
+            id="apellidos"
+            name="apellidos"
+            type="text"
+            [(ngModel)]="formulario.apellidos"
+            [disabled]="guardando"
+            required>
+
+        </div>
+
+
+        <div class="form-field">
+
+          <label for="correo">
+            Correo
+          </label>
+
+          <input
+            id="correo"
+            name="correo"
+            type="email"
+            [(ngModel)]="formulario.correo"
+            [disabled]="guardando">
+
+        </div>
+
+
+        <div class="form-field">
+
+          <label for="telefono">
+            Teléfono
+          </label>
+
+          <input
+            id="telefono"
+            name="telefono"
+            type="text"
+            [(ngModel)]="formulario.telefono"
+            [disabled]="guardando">
+
+        </div>
+
+      </div>
+
+
+      <div class="form-divider"></div>
+
+
+      <div class="form-section">
+
+        <h3>
+          Información laboral
+        </h3>
+
+        <p>
+          Área, cargo y jornada asignada.
+        </p>
+
+      </div>
+
+
+      <div class="form-grid">
+
+        <div class="form-field">
+
+          <label for="area">
+            Área
+          </label>
+
+          <input
+            id="area"
+            name="area"
+            type="text"
+            [(ngModel)]="formulario.area"
+            [disabled]="guardando">
+
+        </div>
+
+
+        <div class="form-field">
+
+          <label for="cargo">
+            Cargo
+          </label>
+
+          <input
+            id="cargo"
+            name="cargo"
+            type="text"
+            [(ngModel)]="formulario.cargo"
+            [disabled]="guardando">
+
+        </div>
+
+
+        <div class="form-field">
+
+          <label for="jornada">
+            Jornada *
+          </label>
+
+          <select
+            id="jornada"
+            name="jornada"
+            [(ngModel)]="formulario.idJornada"
+            [disabled]="guardando"
+            required>
+
+            <option [ngValue]="null">
+              Seleccione una jornada
+            </option>
+
+
+            @for (
+              jornada
+              of jornadas;
+              track jornada.idJornada
+            ) {
+
+              <option
+                [ngValue]="jornada.idJornada">
+
+                {{ jornada.nombre }}
+
+              </option>
+
+            }
+
+          </select>
+
+        </div>
+
+
+        @if (
+          modoEdicion
+        ) {
+
+          <div class="form-field">
+
+            <label for="fechaSalida">
+              Fecha de salida
+            </label>
+
+            <input
+              id="fechaSalida"
+              name="fechaSalida"
+              type="date"
+              [(ngModel)]="formulario.fechaSalida"
+              [disabled]="guardando">
+
+          </div>
+
+        }
+
+      </div>
+
+
+      @if (
+        modoEdicion
+      ) {
+
+        <div class="form-divider"></div>
+
+
+        <label class="status-switch">
+
+          <input
+            type="checkbox"
+            name="activo"
+            [(ngModel)]="formulario.activo"
+            [disabled]="guardando">
+
+          <span class="switch-control"></span>
+
+          <span class="switch-text">
+
+            <strong>
+              Empleado activo
+            </strong>
+
+            <small>
+              Los empleados inactivos no pueden registrar nuevas marcaciones.
+            </small>
+
+          </span>
+
+        </label>
+
+      }
+
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="btn-secondary"
+          [disabled]="guardando"
+          (click)="cerrarModalEmpleado()">
+
+          Cancelar
+
+        </button>
+
+
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="guardando">
+
+          @if (
+            guardando
+          ) {
+
+            Guardando...
+
+          }
+          @else if (
+            modoEdicion
+          ) {
+
+            Guardar cambios
+
+          }
+          @else {
+
+            Crear empleado
+
+          }
+
+        </button>
+
+      </div>
+
+    </form>
+
+  </app-modal>
+
+
+  <!-- ===================================================
+       CONFIRMACIÓN
+  ==================================================== -->
+  <app-confirm-dialog
+    [abierto]="confirmacionAbierta"
+    [titulo]="
+      empleadoCambioEstado?.activo
+        ? 'Desactivar empleado'
+        : 'Activar empleado'
+    "
+    [mensaje]="
+      empleadoCambioEstado?.activo
+        ? 'El empleado dejará de poder registrar nuevas marcaciones. ¿Desea continuar?'
+        : 'El empleado volverá a estar habilitado para registrar marcaciones. ¿Desea continuar?'
+    "
+    [textoConfirmar]="
+      empleadoCambioEstado?.activo
+        ? 'Desactivar'
+        : 'Activar'
+    "
+    [tipo]="
+      empleadoCambioEstado?.activo
+        ? 'danger'
+        : 'primary'
+    "
+    (confirmar)="confirmarCambioEstado()"
+    (cancelar)="cancelarCambioEstado()">
+  </app-confirm-dialog>
+
+
+  <!-- ===================================================
+       ENROLAMIENTO FACIAL
+  ==================================================== -->
+  <app-modal
+    [abierto]="modalEnrolamientoAbierto()"
+    titulo="Enrolamiento facial"
+    ancho="900px"
+    (cerrarModal)="cerrarEnrolamiento()">
+
+    <div class="face-enrollment">
+
+
+      <!-- EMPLEADO -->
+      <div class="face-employee">
+
+        <div class="employee-avatar face-avatar">
+
+          {{
+            empleadoEnrolamiento
+              ?.nombres
+              ?.charAt(0)
+              ?.toUpperCase()
+          }}
+
+          {{
+            empleadoEnrolamiento
+              ?.apellidos
+              ?.charAt(0)
+              ?.toUpperCase()
+          }}
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Empleado
+          </span>
+
+          <strong>
+            {{
+              empleadoEnrolamiento
+                ?.nombreCompleto
+            }}
+          </strong>
+
+          <small>
+            {{
+              empleadoEnrolamiento
+                ?.identificacion
+            }}
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <!-- INFORMACIÓN -->
+      <div class="face-instructions">
+
+        <strong>
+          Se requieren 3 fotografías del rostro
+        </strong>
+
+        <span>
+          Utilice fotografías recientes, con un solo rostro,
+          buena iluminación y el rostro claramente visible.
+        </span>
+
+      </div>
+
+
+      <!-- TABS -->
+      <div class="enrollment-mode">
+
+        <button
+          type="button"
+          class="mode-button"
+          [class.active]="
+            modoEnrolamiento() === 'camara'
+          "
+          [disabled]="procesandoEnrolamiento()"
+          (click)="seleccionarModoCamara()">
+
+          Cámara
+
+        </button>
+
+
+        <button
+          type="button"
+          class="mode-button"
+          [class.active]="
+            modoEnrolamiento() === 'archivos'
+          "
+          [disabled]="procesandoEnrolamiento()"
+          (click)="seleccionarModoArchivos()">
+
+          Cargar fotografías
+
+        </button>
+
+      </div>
+
+
+      <!-- =================================================
+           CÁMARA
+      ================================================== -->
+      @if (
+        modoEnrolamiento() === 'camara'
+      ) {
+
+        <div class="camera-wrapper">
+
+          <video
+            #videoCamara
+            class="camera-video"
+            autoplay
+            playsinline
+            muted>
+          </video>
+
+
+          <div class="face-guide"></div>
+
+
+          @if (
+            iniciandoCamara()
+          ) {
+
+            <div class="camera-overlay">
+
+              <div class="spinner"></div>
+
+              <span>
+                Iniciando cámara...
+              </span>
+
+            </div>
+
+          }
+
+
+          <div class="camera-counter">
+
+            {{ capturas().length }} / 3
+
+          </div>
+
+        </div>
+
+
+        <canvas
+          #canvasCaptura
+          class="capture-canvas">
+        </canvas>
+
+      }
+
+
+      <!-- =================================================
+           ARCHIVOS
+      ================================================== -->
+      @if (
+        modoEnrolamiento() === 'archivos'
+      ) {
+
+        <div class="file-upload-area">
+
+          <div class="upload-icon">
+            ↑
+          </div>
+
+          <h3>
+            Cargar fotografías
+          </h3>
+
+          <p>
+            Seleccione tres fotografías recientes del empleado.
+          </p>
+
+
+          <button
+            type="button"
+            class="btn-upload"
+            [disabled]="
+              procesandoEnrolamiento() ||
+              capturas().length >= 3
+            "
+            (click)="abrirSelectorFotografias()">
+
+            @if (
+              capturas().length === 0
+            ) {
+
+              Seleccionar fotografías
+
+            }
+            @else if (
+              capturas().length < 3
+            ) {
+
+              Agregar fotografía
+              {{ capturas().length + 1 }}
+              de 3
+
+            }
+            @else {
+
+              Fotografías completas
+
+            }
+
+          </button>
+
+
+          <input
+            #inputFotosEmpleado
+            class="file-input-hidden"
+            type="file"
+            accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+            multiple
+            [disabled]="procesandoEnrolamiento()"
+            (change)="seleccionarArchivos($event)">
+
+
+          <small>
+            JPG, JPEG o PNG · máximo 5 MB por fotografía
+          </small>
+
+
+          <div class="upload-progress">
+
+            <strong>
+              {{ capturas().length }} de 3
+            </strong>
+
+            <span>
+              fotografías seleccionadas
+            </span>
+
+          </div>
+
+        </div>
+
+      }
+
+
+      <!-- =================================================
+           PREVISUALIZACIONES
+      ================================================== -->
+      <div class="capture-grid">
+
+        @for (
+          indice
+          of [0, 1, 2];
+          track indice
+        ) {
+
+          <div class="capture-card">
+
+            @if (
+              capturas()[indice]
+            ) {
+
+              <img
+                [src]="capturas()[indice]"
+                [alt]="
+                  'Fotografía facial ' +
+                  (indice + 1)
+                ">
+
+
+              @if (
+                modoEnrolamiento() ===
+                'archivos'
+              ) {
+
+                <div class="capture-name">
+
+                  {{
+                    nombresArchivos()[indice]
+                  }}
+
+                </div>
+
+              }
+
+            }
+            @else {
+
+              <div class="capture-empty">
+
+                <span>
+                  {{ indice + 1 }}
+                </span>
+
+                <small>
+                  Fotografía
+                </small>
+
+              </div>
+
+            }
+
+          </div>
+
+        }
+
+      </div>
+
+
+      <!-- =================================================
+           ACCIONES DE CAPTURA
+      ================================================== -->
+      <div class="capture-actions">
+
+        <button
+          type="button"
+          class="btn-secondary"
+          [disabled]="
+            procesandoEnrolamiento() ||
+            capturas().length === 0
+          "
+          (click)="reiniciarCapturas()">
+
+          Limpiar fotografías
+
+        </button>
+
+
+        @if (
+          modoEnrolamiento() ===
+          'camara'
+        ) {
+
+          <button
+            type="button"
+            class="btn-capture"
+            [disabled]="
+              iniciandoCamara() ||
+              procesandoEnrolamiento() ||
+              capturas().length >= 3
+            "
+            (click)="capturarRostro()">
+
+            @if (
+              capturas().length >= 3
+            ) {
+
+              Capturas completas
+
+            }
+            @else {
+
+              Capturar fotografía
+              {{ capturas().length + 1 }}
+              de 3
+
+            }
+
+          </button>
+
+        }
+
+      </div>
+
+
+      <!-- =================================================
+           GUARDAR
+      ================================================== -->
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="btn-secondary"
+          [disabled]="procesandoEnrolamiento()"
+          (click)="cerrarEnrolamiento()">
+
+          Cancelar
+
+        </button>
+
+
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="
+            procesandoEnrolamiento() ||
+            capturas().length !== 3
+          "
+          (click)="guardarEnrolamiento()">
+
+          @if (
+            procesandoEnrolamiento()
+          ) {
+
+            Procesando rostro...
+
+          }
+          @else {
+
+            Enrolar rostro
+
+          }
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </app-modal>
+
+</section>
