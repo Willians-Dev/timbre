@@ -24,14 +24,28 @@
     </div>
 
 
-    <button
-      type="button"
-      class="btn-primary"
-      (click)="abrirCorreccion()">
+    <div class="header-actions">
 
-      + Corrección manual
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="abrirCorreccion()">
 
-    </button>
+        + Corrección manual
+
+      </button>
+
+
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="abrirRegularizacion()">
+
+        + Regularizar marcación
+
+      </button>
+
+    </div>
 
   </div>
 
@@ -76,6 +90,19 @@
 
       <strong>
         {{ totalManuales() }}
+      </strong>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <span>
+        Regularizaciones
+      </span>
+
+      <strong>
+        {{ totalRegularizaciones() }}
       </strong>
 
     </div>
@@ -197,6 +224,10 @@
           Manual
         </option>
 
+        <option value="Regularización">
+          Regularización
+        </option>
+
       </select>
 
     </div>
@@ -249,7 +280,8 @@
 
     }
     @else if (
-      marcacionesFiltradas().length === 0
+      marcacionesFiltradas().length ===
+      0
     ) {
 
       <div class="state">
@@ -317,34 +349,24 @@
                   'Anulada'
                 ">
 
-
                 <!-- EMPLEADO -->
 
                 <td>
 
                   <strong>
-
-                    {{
-                      marcacion.empleado
-                    }}
-
+                    {{ marcacion.empleado }}
                   </strong>
-
 
                   <small>
 
-                    {{
-                      marcacion.identificacion
-                    }}
+                    {{ marcacion.identificacion }}
 
                     @if (
                       marcacion.area
                     ) {
 
                       ·
-                      {{
-                        marcacion.area
-                      }}
+                      {{ marcacion.area }}
 
                     }
 
@@ -395,26 +417,28 @@
 
                 <td>
 
-                  @if (
-                    marcacion.esFacial
-                  ) {
+                  <span
+                    class="origin"
+                    [class.facial]="
+                      claseOrigen(marcacion) ===
+                      'facial'
+                    "
+                    [class.manual]="
+                      claseOrigen(marcacion) ===
+                      'manual'
+                    "
+                    [class.regularizacion]="
+                      claseOrigen(marcacion) ===
+                      'regularizacion'
+                    ">
 
-                    <span class="origin facial">
+                    {{
+                      origenMarcacion(
+                        marcacion
+                      )
+                    }}
 
-                      Facial
-
-                    </span>
-
-                  }
-                  @else {
-
-                    <span class="origin manual">
-
-                      Manual
-
-                    </span>
-
-                  }
+                  </span>
 
                 </td>
 
@@ -455,7 +479,7 @@
                 </td>
 
 
-                <!-- ACCIÓN -->
+                <!-- ACCIONES -->
 
                 <td class="action-cell">
 
@@ -464,31 +488,70 @@
                     'Activa'
                   ) {
 
-                    <button
-                      type="button"
-                      class="
-                        action-button
-                        action-button-danger
-                      "
-                      (click)="
-                        solicitarAnulacion(
-                          marcacion
+                    <div class="row-actions">
+
+                      @if (
+                        tieneMarcacionesFaltantes(
+                          marcacion.idEmpleado
                         )
-                      ">
+                      ) {
 
-                      <span
-                        class="action-icon"
-                        aria-hidden="true">
+                        <button
+                          type="button"
+                          class="
+                            action-button
+                            action-button-regularize
+                          "
+                          (click)="
+                            abrirRegularizacion(
+                              marcacion
+                            )
+                          ">
 
-                        ×
+                          <span
+                            class="action-icon"
+                            aria-hidden="true">
 
-                      </span>
+                            +
 
-                      <span>
-                        Anular
-                      </span>
+                          </span>
 
-                    </button>
+                          <span>
+                            Regularizar
+                          </span>
+
+                        </button>
+
+                      }
+
+
+                      <button
+                        type="button"
+                        class="
+                          action-button
+                          action-button-danger
+                        "
+                        (click)="
+                          solicitarAnulacion(
+                            marcacion
+                          )
+                        ">
+
+                        <span
+                          class="action-icon"
+                          aria-hidden="true">
+
+                          ×
+
+                        </span>
+
+                        <span>
+                          Anular
+                        </span>
+
+                      </button>
+
+                    </div>
 
                   }
                   @else {
@@ -519,6 +582,361 @@
 
 
   <!-- =================================================
+       MODAL REGULARIZACIÓN
+  ================================================== -->
+
+  @if (
+    modalRegularizar()
+  ) {
+
+    <div
+      class="modal-backdrop"
+      (click)="cerrarRegularizacion()">
+
+      <div
+        class="modal"
+        (click)="
+          $event.stopPropagation()
+        ">
+
+        <div class="modal-header">
+
+          <div>
+
+            <span class="eyebrow">
+              REGULARIZACIÓN
+            </span>
+
+            <h2>
+              Agregar marcación faltante
+            </h2>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="close"
+            [disabled]="guardando()"
+            (click)="cerrarRegularizacion()">
+
+            ×
+
+          </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+          <div class="regularization-info">
+
+            <div class="regularization-icon">
+              !
+            </div>
+
+            <div>
+
+              <strong>
+                Regularización administrativa
+              </strong>
+
+              <span>
+                Use esta opción únicamente cuando exista una
+                marcación que el empleado omitió registrar.
+                La operación quedará registrada en auditoría.
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <div class="field">
+
+            <label>
+              Empleado *
+            </label>
+
+            <select
+              [disabled]="guardando()"
+              [ngModel]="
+                formularioRegularizacion()
+                  .idEmpleado
+              "
+              (ngModelChange)="
+                cambiarEmpleadoRegularizacion(
+                  $event
+                )
+              ">
+
+              <option
+                [ngValue]="null">
+
+                Seleccione...
+
+              </option>
+
+
+              @for (
+                empleado
+                of empleados();
+                track empleado.idEmpleado
+              ) {
+
+                <option
+                  [ngValue]="
+                    empleado.idEmpleado
+                  ">
+
+                  {{
+                    empleado.nombreCompleto
+                  }}
+
+                </option>
+
+              }
+
+            </select>
+
+          </div>
+
+
+          @if (
+            formularioRegularizacion()
+              .idEmpleado
+          ) {
+
+            @if (
+              tiposFaltantesRegularizacion()
+                .length >
+              0
+            ) {
+
+              <div class="missing-box">
+
+                <span>
+                  Marcaciones pendientes
+                </span>
+
+                <div class="missing-list">
+
+                  @for (
+                    faltante
+                    of tiposFaltantesRegularizacion();
+                    track faltante
+                  ) {
+
+                    <span class="missing-chip">
+
+                      {{
+                        nombreTipo(
+                          faltante
+                        )
+                      }}
+
+                    </span>
+
+                  }
+
+                </div>
+
+              </div>
+
+            }
+            @else {
+
+              <div class="complete-box">
+
+                Este empleado ya tiene todas las
+                marcaciones activas para la fecha.
+
+              </div>
+
+            }
+
+          }
+
+
+          <div class="form-grid regularization-grid">
+
+            <div class="field">
+
+              <label>
+                Fecha *
+              </label>
+
+              <input
+                type="date"
+                [disabled]="true"
+                [ngModel]="
+                  formularioRegularizacion()
+                    .fecha
+                ">
+
+            </div>
+
+
+            <div class="field">
+
+              <label>
+                Marcación faltante *
+              </label>
+
+              <select
+                [disabled]="
+                  guardando() ||
+                  !formularioRegularizacion()
+                    .idEmpleado ||
+                  tiposFaltantesRegularizacion()
+                    .length === 0
+                "
+                [ngModel]="
+                  formularioRegularizacion()
+                    .tipoMarcacion
+                "
+                (ngModelChange)="
+                  actualizarCampoRegularizacion(
+                    'tipoMarcacion',
+                    $event
+                  )
+                ">
+
+                @for (
+                  faltante
+                  of tiposFaltantesRegularizacion();
+                  track faltante
+                ) {
+
+                  <option
+                    [ngValue]="faltante">
+
+                    {{
+                      nombreTipo(
+                        faltante
+                      )
+                    }}
+
+                  </option>
+
+                }
+
+              </select>
+
+            </div>
+
+
+            <div class="field">
+
+              <label>
+                Hora *
+              </label>
+
+              <input
+                type="time"
+                [disabled]="guardando()"
+                [ngModel]="
+                  formularioRegularizacion()
+                    .hora
+                "
+                (ngModelChange)="
+                  actualizarCampoRegularizacion(
+                    'hora',
+                    $event
+                  )
+                ">
+
+            </div>
+
+          </div>
+
+
+          <div class="field">
+
+            <label>
+              Motivo de la regularización *
+            </label>
+
+            <textarea
+              rows="4"
+              maxlength="440"
+              [disabled]="guardando()"
+              placeholder="Ej.: Omisión de marcación reportada y validada por RRHH."
+              [ngModel]="
+                formularioRegularizacion()
+                  .motivo
+              "
+              (ngModelChange)="
+                actualizarCampoRegularizacion(
+                  'motivo',
+                  $event
+                )
+              ">
+            </textarea>
+
+            <small class="field-help">
+
+              La hora debe corresponder al registro
+              realmente validado. El sistema no genera
+              automáticamente horas faltantes.
+
+            </small>
+
+          </div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+          <button
+            type="button"
+            class="btn-secondary"
+            [disabled]="guardando()"
+            (click)="cerrarRegularizacion()">
+
+            Cancelar
+
+          </button>
+
+
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="
+              guardando() ||
+              !formularioRegularizacion()
+                .idEmpleado ||
+              tiposFaltantesRegularizacion()
+                .length === 0
+            "
+            (click)="guardarRegularizacion()">
+
+            @if (
+              guardando()
+            ) {
+
+              Registrando...
+
+            }
+            @else {
+
+              Registrar regularización
+
+            }
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+
+  <!-- =================================================
        MODAL CORRECCIÓN MANUAL
   ================================================== -->
 
@@ -530,13 +948,11 @@
       class="modal-backdrop"
       (click)="cerrarCorreccion()">
 
-
       <div
         class="modal"
         (click)="
           $event.stopPropagation()
         ">
-
 
         <div class="modal-header">
 
@@ -545,7 +961,6 @@
             <span class="eyebrow">
               AJUSTE ADMINISTRATIVO
             </span>
-
 
             <h2>
               Corrección manual
@@ -582,7 +997,6 @@
             <label>
               Empleado *
             </label>
-
 
             <select
               [ngModel]="
@@ -638,7 +1052,6 @@
                 Fecha *
               </label>
 
-
               <input
                 type="date"
                 [ngModel]="
@@ -660,7 +1073,6 @@
                 Hora *
               </label>
 
-
               <input
                 type="time"
                 [ngModel]="
@@ -681,7 +1093,6 @@
               <label>
                 Tipo *
               </label>
-
 
               <select
                 [ngModel]="
@@ -723,7 +1134,6 @@
             <label>
               Motivo *
             </label>
-
 
             <textarea
               rows="4"
@@ -793,13 +1203,11 @@
       class="modal-backdrop"
       (click)="cancelarAnulacion()">
 
-
       <div
         class="modal small"
         (click)="
           $event.stopPropagation()
         ">
-
 
         <div class="modal-header">
 
@@ -841,11 +1249,8 @@
           <div class="warning-box">
 
             <div class="warning-icon">
-
               !
-
             </div>
-
 
             <div>
 
@@ -958,9 +1363,7 @@
             }
             @else {
 
-              <span>
-                Confirmar anulación
-              </span>
+              Confirmar anulación
 
             }
 

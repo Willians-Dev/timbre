@@ -50,6 +50,27 @@ interface FormCorreccion {
 
   motivo:
     string;
+
+}
+
+
+interface FormRegularizacion {
+
+  idEmpleado:
+    number | null;
+
+  fecha:
+    string;
+
+  hora:
+    string;
+
+  tipoMarcacion:
+    TipoMarcacion | null;
+
+  motivo:
+    string;
+
 }
 
 
@@ -74,23 +95,45 @@ interface FormCorreccion {
 export class Marcaciones {
 
   // =====================================================
+  // TIPOS
+  // =====================================================
+
+  readonly tiposMarcacion:
+    TipoMarcacion[] =
+    [
+      'Entrada',
+      'InicioAlmuerzo',
+      'FinAlmuerzo',
+      'Salida'
+    ];
+
+
+  // =====================================================
   // DATOS
   // =====================================================
 
   readonly marcaciones =
-    signal<MarcacionAdmin[]>([]);
+    signal<MarcacionAdmin[]>(
+      []
+    );
 
 
   readonly empleados =
-    signal<Empleado[]>([]);
+    signal<Empleado[]>(
+      []
+    );
 
 
   readonly cargando =
-    signal(false);
+    signal(
+      false
+    );
 
 
   readonly guardando =
-    signal(false);
+    signal(
+      false
+    );
 
 
   // =====================================================
@@ -104,19 +147,27 @@ export class Marcaciones {
 
 
   readonly busqueda =
-    signal('');
+    signal(
+      ''
+    );
 
 
   readonly tipo =
-    signal('');
+    signal(
+      ''
+    );
 
 
   readonly estado =
-    signal('');
+    signal(
+      ''
+    );
 
 
   readonly origen =
-    signal('');
+    signal(
+      ''
+    );
 
 
   // =====================================================
@@ -124,11 +175,21 @@ export class Marcaciones {
   // =====================================================
 
   readonly modalCorreccion =
-    signal(false);
+    signal(
+      false
+    );
+
+
+  readonly modalRegularizar =
+    signal(
+      false
+    );
 
 
   readonly modalAnular =
-    signal(false);
+    signal(
+      false
+    );
 
 
   readonly marcacionSeleccionada =
@@ -138,12 +199,20 @@ export class Marcaciones {
 
 
   readonly motivoAnulacion =
-    signal('');
+    signal(
+      ''
+    );
 
 
   readonly formulario =
     signal<FormCorreccion>(
       this.formularioInicial()
+    );
+
+
+  readonly formularioRegularizacion =
+    signal<FormRegularizacion>(
+      this.formularioRegularizacionInicial()
     );
 
 
@@ -204,20 +273,17 @@ export class Marcaciones {
                 this.estado();
 
 
+              const origenMarcacion =
+                this.origenMarcacion(
+                  marcacion
+                );
+
+
               const coincideOrigen =
                 !this.origen() ||
 
-                (
-                  this.origen() ===
-                    'Facial' &&
-                  marcacion.esFacial
-                ) ||
-
-                (
-                  this.origen() ===
-                    'Manual' &&
-                  !marcacion.esFacial
-                );
+                origenMarcacion ===
+                this.origen();
 
 
               return (
@@ -270,9 +336,10 @@ export class Marcaciones {
         this.marcaciones()
           .filter(
             x =>
-              x.esFacial &&
+              this.origenMarcacion(x) ===
+                'Facial' &&
               x.estadoMarcacion ===
-              'Activa'
+                'Activa'
           )
           .length
     );
@@ -284,11 +351,87 @@ export class Marcaciones {
         this.marcaciones()
           .filter(
             x =>
-              !x.esFacial &&
+              this.origenMarcacion(x) ===
+                'Manual' &&
               x.estadoMarcacion ===
-              'Activa'
+                'Activa'
           )
           .length
+    );
+
+
+  readonly totalRegularizaciones =
+    computed(
+      () =>
+        this.marcaciones()
+          .filter(
+            x =>
+              this.origenMarcacion(x) ===
+                'Regularización' &&
+              x.estadoMarcacion ===
+                'Activa'
+          )
+          .length
+    );
+
+
+  // =====================================================
+  // REGULARIZACIÓN - TIPOS FALTANTES
+  // =====================================================
+
+  readonly tiposFaltantesRegularizacion =
+    computed<TipoMarcacion[]>(
+      () => {
+
+        const idEmpleado =
+          this.formularioRegularizacion()
+            .idEmpleado;
+
+
+        if (
+          !idEmpleado
+        ) {
+
+          return [];
+
+        }
+
+
+        return this.obtenerTiposFaltantes(
+          idEmpleado
+        );
+
+      }
+    );
+
+
+  readonly empleadoRegularizacion =
+    computed(
+      () => {
+
+        const idEmpleado =
+          this.formularioRegularizacion()
+            .idEmpleado;
+
+
+        if (
+          !idEmpleado
+        ) {
+
+          return null;
+
+        }
+
+
+        return this.empleados()
+          .find(
+            empleado =>
+              empleado.idEmpleado ===
+              idEmpleado
+          ) ??
+          null;
+
+      }
     );
 
 
@@ -311,12 +454,15 @@ export class Marcaciones {
 
 
   // =====================================================
-  // CONSULTAR MARCACIONES
+  // CONSULTAR
   // =====================================================
 
-  consultar(): void {
+  consultar():
+    void {
 
-    if (!this.fecha()) {
+    if (
+      !this.fecha()
+    ) {
 
       return;
 
@@ -417,7 +563,8 @@ export class Marcaciones {
   // CORRECCIÓN MANUAL
   // =====================================================
 
-  abrirCorreccion(): void {
+  abrirCorreccion():
+    void {
 
     this.formulario.set(
       {
@@ -436,7 +583,8 @@ export class Marcaciones {
   }
 
 
-  cerrarCorreccion(): void {
+  cerrarCorreccion():
+    void {
 
     if (
       this.guardando()
@@ -454,7 +602,8 @@ export class Marcaciones {
   }
 
 
-  guardarCorreccion(): void {
+  guardarCorreccion():
+    void {
 
     const form =
       this.formulario();
@@ -486,26 +635,26 @@ export class Marcaciones {
 
 
     this.marcacionesService
-      .crearCorreccion({
+      .crearCorreccion(
+        {
+          idEmpleado:
+            form.idEmpleado,
 
-        idEmpleado:
-          form.idEmpleado,
+          fecha:
+            form.fecha,
 
-        fecha:
-          form.fecha,
+          hora:
+            this.normalizarHora(
+              form.hora
+            ),
 
-        hora:
-          form.hora.length === 5
-            ? `${form.hora}:00`
-            : form.hora,
+          tipoMarcacion:
+            form.tipoMarcacion,
 
-        tipoMarcacion:
-          form.tipoMarcacion,
-
-        motivo:
-          form.motivo.trim()
-
-      })
+          motivo:
+            form.motivo.trim()
+        }
+      )
       .subscribe({
 
         next:
@@ -559,12 +708,384 @@ export class Marcaciones {
 
 
   // =====================================================
-  // SOLICITAR ANULACIÓN
+  // ABRIR REGULARIZACIÓN
+  //
+  // Si viene desde una fila:
+  // - preselecciona empleado.
+  //
+  // Si viene desde el botón superior:
+  // - RRHH selecciona empleado.
+  // =====================================================
+
+  abrirRegularizacion(
+    marcacion?:
+      MarcacionAdmin
+  ):
+    void {
+
+    const idEmpleado =
+      marcacion?.idEmpleado ??
+      null;
+
+
+    const tiposFaltantes =
+      idEmpleado
+        ? this.obtenerTiposFaltantes(
+            idEmpleado
+          )
+        : [];
+
+
+    if (
+      idEmpleado &&
+      tiposFaltantes.length ===
+        0
+    ) {
+
+      this.notificationService
+        .warning(
+          'El empleado ya tiene todas las marcaciones activas para la fecha seleccionada.',
+          'Jornada completa'
+        );
+
+
+      return;
+
+    }
+
+
+    this.formularioRegularizacion.set(
+      {
+        idEmpleado,
+
+        fecha:
+          this.fecha(),
+
+        hora:
+          '',
+
+        tipoMarcacion:
+          tiposFaltantes[0] ??
+          null,
+
+        motivo:
+          ''
+      }
+    );
+
+
+    this.modalRegularizar.set(
+      true
+    );
+
+  }
+
+
+  cerrarRegularizacion():
+    void {
+
+    if (
+      this.guardando()
+    ) {
+
+      return;
+
+    }
+
+
+    this.modalRegularizar.set(
+      false
+    );
+
+
+    this.formularioRegularizacion.set(
+      this.formularioRegularizacionInicial()
+    );
+
+  }
+
+
+  // =====================================================
+  // CAMBIO EMPLEADO REGULARIZACIÓN
+  // =====================================================
+
+  cambiarEmpleadoRegularizacion(
+    valor:
+      number | null
+  ):
+    void {
+
+    const idEmpleado =
+      valor
+        ? +valor
+        : null;
+
+
+    const faltantes =
+      idEmpleado
+        ? this.obtenerTiposFaltantes(
+            idEmpleado
+          )
+        : [];
+
+
+    this.formularioRegularizacion.update(
+      actual => ({
+        ...actual,
+
+        idEmpleado,
+
+        tipoMarcacion:
+          faltantes[0] ??
+          null
+      })
+    );
+
+  }
+
+
+  actualizarCampoRegularizacion<
+    K extends keyof FormRegularizacion
+  >(
+    campo:
+      K,
+
+    valor:
+      FormRegularizacion[K]
+  ):
+    void {
+
+    this.formularioRegularizacion
+      .update(
+        actual => ({
+          ...actual,
+
+          [campo]:
+            valor
+        })
+      );
+
+  }
+
+
+  // =====================================================
+  // GUARDAR REGULARIZACIÓN
+  // =====================================================
+
+  guardarRegularizacion():
+    void {
+
+    const form =
+      this.formularioRegularizacion();
+
+
+    if (
+      !form.idEmpleado ||
+      !form.fecha ||
+      !form.hora ||
+      !form.tipoMarcacion ||
+      !form.motivo.trim()
+    ) {
+
+      this.notificationService
+        .warning(
+          'Complete todos los campos obligatorios.',
+          'Datos incompletos'
+        );
+
+
+      return;
+
+    }
+
+
+    if (
+      form.motivo
+        .trim()
+        .length <
+      5
+    ) {
+
+      this.notificationService
+        .warning(
+          'Ingrese un motivo más descriptivo para la regularización.',
+          'Motivo insuficiente'
+        );
+
+
+      return;
+
+    }
+
+
+    if (
+      !this.tiposFaltantesRegularizacion()
+        .includes(
+          form.tipoMarcacion
+        )
+    ) {
+
+      this.notificationService
+        .warning(
+          'La marcación seleccionada ya no se encuentra pendiente.',
+          'Marcación no disponible'
+        );
+
+
+      return;
+
+    }
+
+
+    this.guardando.set(
+      true
+    );
+
+
+    this.marcacionesService
+      .regularizar(
+        {
+          idEmpleado:
+            form.idEmpleado,
+
+          fecha:
+            form.fecha,
+
+          hora:
+            this.normalizarHora(
+              form.hora
+            ),
+
+          tipoMarcacion:
+            form.tipoMarcacion,
+
+          motivo:
+            form.motivo
+              .trim()
+        }
+      )
+      .subscribe({
+
+        next:
+          response => {
+
+            this.guardando.set(
+              false
+            );
+
+
+            this.modalRegularizar.set(
+              false
+            );
+
+
+            this.formularioRegularizacion
+              .set(
+                this.formularioRegularizacionInicial()
+              );
+
+
+            this.notificationService
+              .success(
+                response.mensaje,
+                'Marcación regularizada'
+              );
+
+
+            this.consultar();
+
+          },
+
+
+        error:
+          error => {
+
+            this.guardando.set(
+              false
+            );
+
+
+            this.notificationService
+              .error(
+
+                error?.error?.mensaje ??
+                'No fue posible regularizar la marcación.',
+
+                'Regularización'
+
+              );
+
+          }
+
+      });
+
+  }
+
+
+  // =====================================================
+  // ¿TIENE MARCACIONES FALTANTES?
+  // =====================================================
+
+  tieneMarcacionesFaltantes(
+    idEmpleado:
+      number
+  ):
+    boolean {
+
+    return (
+      this.obtenerTiposFaltantes(
+        idEmpleado
+      ).length >
+      0
+    );
+
+  }
+
+
+  private obtenerTiposFaltantes(
+    idEmpleado:
+      number
+  ):
+    TipoMarcacion[] {
+
+    const tiposActivos =
+      new Set(
+        this.marcaciones()
+          .filter(
+            marcacion =>
+              marcacion.idEmpleado ===
+                idEmpleado &&
+
+              marcacion.estadoMarcacion ===
+                'Activa'
+          )
+          .map(
+            marcacion =>
+              marcacion.tipoMarcacion
+          )
+      );
+
+
+    return this.tiposMarcacion
+      .filter(
+        tipo =>
+          !tiposActivos.has(
+            tipo
+          )
+      );
+
+  }
+
+
+  // =====================================================
+  // ANULACIÓN
   // =====================================================
 
   solicitarAnulacion(
-    marcacion: MarcacionAdmin
-  ): void {
+    marcacion:
+      MarcacionAdmin
+  ):
+    void {
 
     if (
       marcacion.estadoMarcacion ===
@@ -594,11 +1115,8 @@ export class Marcaciones {
   }
 
 
-  // =====================================================
-  // CANCELAR ANULACIÓN
-  // =====================================================
-
-  cancelarAnulacion(): void {
+  cancelarAnulacion():
+    void {
 
     if (
       this.guardando()
@@ -627,11 +1145,8 @@ export class Marcaciones {
   }
 
 
-  // =====================================================
-  // CONFIRMAR ANULACIÓN
-  // =====================================================
-
-  confirmarAnulacion(): void {
+  confirmarAnulacion():
+    void {
 
     const marcacion =
       this.marcacionSeleccionada();
@@ -651,7 +1166,9 @@ export class Marcaciones {
     }
 
 
-    if (!motivo) {
+    if (
+      !motivo
+    ) {
 
       this.notificationService
         .warning(
@@ -741,24 +1258,26 @@ export class Marcaciones {
 
 
   // =====================================================
-  // FORMULARIO
+  // FORMULARIO CORRECCIÓN
   // =====================================================
 
   actualizarCampo<
     K extends keyof FormCorreccion
   >(
-    campo: K,
-    valor: FormCorreccion[K]
-  ): void {
+    campo:
+      K,
+
+    valor:
+      FormCorreccion[K]
+  ):
+    void {
 
     this.formulario.update(
       actual => ({
-
         ...actual,
 
         [campo]:
           valor
-
       })
     );
 
@@ -790,15 +1309,124 @@ export class Marcaciones {
   }
 
 
+  private formularioRegularizacionInicial():
+    FormRegularizacion {
+
+    return {
+
+      idEmpleado:
+        null,
+
+      fecha:
+        this.fecha(),
+
+      hora:
+        '',
+
+      tipoMarcacion:
+        null,
+
+      motivo:
+        ''
+
+    };
+
+  }
+
+
+  // =====================================================
+  // ORIGEN
+  // =====================================================
+
+  origenMarcacion(
+    marcacion:
+      MarcacionAdmin
+  ):
+    string {
+
+    if (
+      marcacion.origen
+    ) {
+
+      return marcacion.origen;
+
+    }
+
+
+    if (
+      marcacion.esFacial
+    ) {
+
+      return 'Facial';
+
+    }
+
+
+    if (
+      marcacion.observacion
+        ?.startsWith(
+          'Regularización administrativa:'
+        )
+    ) {
+
+      return 'Regularización';
+
+    }
+
+
+    return 'Manual';
+
+  }
+
+
+  claseOrigen(
+    marcacion:
+      MarcacionAdmin
+  ):
+    string {
+
+    const origen =
+      this.origenMarcacion(
+        marcacion
+      );
+
+
+    switch (
+      origen
+    ) {
+
+      case 'Facial':
+
+        return 'facial';
+
+
+      case 'Regularización':
+
+        return 'regularizacion';
+
+
+      default:
+
+        return 'manual';
+
+    }
+
+  }
+
+
   // =====================================================
   // HELPERS
   // =====================================================
 
   hora(
-    fechaHora: string
-  ): string {
+    fechaHora:
+      string
+  ):
+    string {
 
-    if (!fechaHora) {
+    if (
+      !fechaHora
+    ) {
 
       return '-';
 
@@ -812,7 +1440,8 @@ export class Marcaciones {
 
 
     if (
-      indice >= 0
+      indice >=
+      0
     ) {
 
       return fechaHora.substring(
@@ -824,7 +1453,8 @@ export class Marcaciones {
 
 
     if (
-      fechaHora.length >= 16
+      fechaHora.length >=
+      16
     ) {
 
       return fechaHora.substring(
@@ -841,10 +1471,14 @@ export class Marcaciones {
 
 
   nombreTipo(
-    tipo: string
-  ): string {
+    tipo:
+      string
+  ):
+    string {
 
-    switch (tipo) {
+    switch (
+      tipo
+    ) {
 
       case 'InicioAlmuerzo':
 
@@ -865,6 +1499,20 @@ export class Marcaciones {
   }
 
 
+  private normalizarHora(
+    hora:
+      string
+  ):
+    string {
+
+    return hora.length ===
+      5
+        ? `${hora}:00`
+        : hora;
+
+  }
+
+
   private obtenerFechaActual():
     string {
 
@@ -878,7 +1526,8 @@ export class Marcaciones {
 
     const month =
       String(
-        fecha.getMonth() + 1
+        fecha.getMonth() +
+        1
       )
         .padStart(
           2,
@@ -896,7 +1545,11 @@ export class Marcaciones {
         );
 
 
-    return `${year}-${month}-${day}`;
+    return (
+      `${year}-` +
+      `${month}-` +
+      day
+    );
 
   }
 

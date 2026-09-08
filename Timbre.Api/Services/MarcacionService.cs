@@ -5,32 +5,48 @@ using Timbre.Api.Models;
 
 namespace Timbre.Api.Services;
 
+
 public class MarcacionService
 {
-    private readonly TimbreDbContext _context;
-    private readonly FechaHoraService _fechaHoraService;
+    private readonly TimbreDbContext
+        _context;
+
+
+    private readonly FechaHoraService
+        _fechaHoraService;
+
 
     public MarcacionService(
         TimbreDbContext context,
         FechaHoraService fechaHoraService)
     {
-        _context = context;
-        _fechaHoraService = fechaHoraService;
+        _context =
+            context;
+
+
+        _fechaHoraService =
+            fechaHoraService;
     }
 
 
     // =====================================================
     // REGISTRAR MARCACIÓN
     // =====================================================
+
     public async Task<RegistroMarcacionResultadoDto>
         RegistrarAsync(
             long idEmpleado,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken =
+                default)
     {
         // =================================================
         // VALIDAR EMPLEADO
         // =================================================
-        if (idEmpleado <= 0)
+
+        if (
+            idEmpleado <=
+            0
+        )
         {
             throw new ArgumentException(
                 "Debe indicar un empleado válido."
@@ -41,19 +57,25 @@ public class MarcacionService
         // =================================================
         // EMPLEADO
         // =================================================
+
         var empleado =
-            await _context.Empleado
+            await _context
+                .Empleado
                 .Include(e =>
                     e.IdJornadaNavigation)
                 .FirstOrDefaultAsync(
                     e =>
-                        e.IdEmpleado == idEmpleado &&
+                        e.IdEmpleado ==
+                            idEmpleado &&
                         e.Activo,
+
                     cancellationToken
                 );
 
 
-        if (empleado is null)
+        if (
+            empleado is null
+        )
         {
             throw new InvalidOperationException(
                 "El empleado no existe o se encuentra inactivo."
@@ -64,11 +86,15 @@ public class MarcacionService
         // =================================================
         // JORNADA
         // =================================================
+
         var jornada =
-            empleado.IdJornadaNavigation;
+            empleado
+                .IdJornadaNavigation;
 
 
-        if (jornada is null)
+        if (
+            jornada is null
+        )
         {
             throw new InvalidOperationException(
                 "El empleado no tiene una jornada laboral asignada."
@@ -76,10 +102,12 @@ public class MarcacionService
         }
 
 
-        if (!jornada.Activo)
+        if (
+            !jornada.Activo
+        )
         {
             throw new InvalidOperationException(
-                "La jornada laboral asignada al empleado se encuentra inactiva."
+                "La jornada del empleado se encuentra inactiva."
             );
         }
 
@@ -87,20 +115,23 @@ public class MarcacionService
         // =================================================
         // FECHA / HORA ECUADOR
         // =================================================
+
         var ahora =
             _fechaHoraService
                 .AhoraEcuador();
 
 
         var hoy =
-            DateOnly.FromDateTime(
-                ahora
-            );
+            DateOnly
+                .FromDateTime(
+                    ahora
+                );
 
 
         // =================================================
         // DÍA LABORABLE
         // =================================================
+
         if (
             !TrabajaHoy(
                 jornada,
@@ -109,24 +140,28 @@ public class MarcacionService
         )
         {
             throw new InvalidOperationException(
-                "Hoy no corresponde a un día laborable según la jornada asignada."
+                "El empleado no tiene jornada laboral configurada para hoy."
             );
         }
 
 
         // =================================================
-        // MARCACIONES DEL DÍA
+        // MARCACIONES ACTIVAS DEL DÍA
         // =================================================
+
         var marcacionesHoy =
             await _context
                 .MarcacionAsistencia
                 .Where(m =>
                     m.IdEmpleado ==
                         empleado.IdEmpleado &&
+
                     m.FechaMarcacion ==
                         hoy &&
+
                     m.EstadoMarcacion ==
-                        "Activa")
+                        "Activa"
+                )
                 .OrderBy(m =>
                     m.FechaHora)
                 .ToListAsync(
@@ -135,8 +170,25 @@ public class MarcacionService
 
 
         // =================================================
+        // VALIDAR ESTADO PREVIO
+        //
+        // Aquí impedimos que el kiosko continúe una
+        // jornada que nunca tuvo Entrada.
+        //
+        // No se inventan marcaciones faltantes.
+        // =================================================
+
+        ValidarSecuenciaCritica(
+            ahora,
+            jornada,
+            marcacionesHoy
+        );
+
+
+        // =================================================
         // DETERMINAR MARCACIÓN
         // =================================================
+
         var tipoMarcacion =
             DeterminarTipoMarcacion(
                 ahora,
@@ -145,54 +197,46 @@ public class MarcacionService
             );
 
 
-        // =================================================
-        // NO HAY MARCACIÓN DISPONIBLE
-        //
-        // Antes se devolvía:
-        //
-        // "No existe una marcación disponible..."
-        //
-        // Ahora indicamos al usuario el motivo y cuál
-        // sería la siguiente marcación.
-        // =================================================
-        if (tipoMarcacion is null)
+        if (
+            tipoMarcacion is null
+        )
         {
-            var mensaje =
-                ConstruirMensajeMarcacionNoDisponible(
+            throw new InvalidOperationException(
+                ObtenerMensajeSinMarcacionDisponible(
                     ahora,
                     jornada,
                     marcacionesHoy
-                );
-
-
-            throw new InvalidOperationException(
-                mensaje
-            );
-        }
-
-
-        // =================================================
-        // EVITAR DUPLICADOS
-        // =================================================
-        var yaExiste =
-            marcacionesHoy.Any(m =>
-                m.TipoMarcacion ==
-                tipoMarcacion);
-
-
-        if (yaExiste)
-        {
-            throw new InvalidOperationException(
-                ConstruirMensajeMarcacionDuplicada(
-                    tipoMarcacion
                 )
             );
         }
 
 
         // =================================================
-        // GUARDAR MARCACIÓN
+        // EVITAR DUPLICADO ACTIVO
         // =================================================
+
+        var yaExiste =
+            marcacionesHoy
+                .Any(m =>
+                    m.TipoMarcacion ==
+                    tipoMarcacion
+                );
+
+
+        if (
+            yaExiste
+        )
+        {
+            throw new InvalidOperationException(
+                $"La marcación {ObtenerNombreTipo(tipoMarcacion)} ya fue registrada hoy."
+            );
+        }
+
+
+        // =================================================
+        // GUARDAR
+        // =================================================
+
         var marcacion =
             new MarcacionAsistencia
             {
@@ -227,8 +271,9 @@ public class MarcacionService
 
 
         // =================================================
-        // ESTADO DEL DÍA
+        // ESTADO ACTUALIZADO
         // =================================================
+
         var marcacionesActualizadas =
             marcacionesHoy
                 .Append(
@@ -240,16 +285,25 @@ public class MarcacionService
         var estadoDia =
             ObtenerEstadoDia(
                 empleado.IdEmpleado,
-                $"{empleado.Nombres} {empleado.Apellidos}",
+
+                $"{empleado.Nombres} " +
+                $"{empleado.Apellidos}",
+
                 hoy,
+
                 jornada,
+
                 marcacionesActualizadas
             );
 
 
+        // =================================================
+        // PUNTUALIDAD
+        // =================================================
+
         EstadoEntradaDto?
             estadoEntrada =
-            null;
+                null;
 
 
         if (
@@ -266,8 +320,20 @@ public class MarcacionService
 
 
         // =================================================
+        // MENSAJE
+        // =================================================
+
+        var mensaje =
+            ObtenerMensajeRegistro(
+                marcacion.TipoMarcacion,
+                estadoDia
+            );
+
+
+        // =================================================
         // RESULTADO
         // =================================================
+
         return new RegistroMarcacionResultadoDto
         {
             IdMarcacion =
@@ -277,7 +343,8 @@ public class MarcacionService
                 empleado.IdEmpleado,
 
             Empleado =
-                $"{empleado.Nombres} {empleado.Apellidos}",
+                $"{empleado.Nombres} " +
+                $"{empleado.Apellidos}",
 
             Fecha =
                 marcacion.FechaMarcacion,
@@ -295,78 +362,205 @@ public class MarcacionService
                 estadoDia.Completa,
 
             MarcacionesFaltantes =
-                estadoDia.MarcacionesFaltantes,
+                estadoDia
+                    .MarcacionesFaltantes,
 
             Mensaje =
-                ConstruirMensajeExito(
-                    marcacion.TipoMarcacion,
-                    marcacion.FechaHora
-                )
+                mensaje
         };
+    }
+
+
+    // =====================================================
+    // VALIDACIÓN DE SECUENCIA CRÍTICA
+    //
+    // Regla:
+    //
+    // Si no existe Entrada, el sistema NO debe permitir:
+    //
+    // - Inicio de almuerzo
+    // - Fin de almuerzo
+    // - Salida
+    //
+    // Una marcación posterior no puede existir sin una
+    // jornada previamente iniciada.
+    // =====================================================
+
+    private static void ValidarSecuenciaCritica(
+        DateTime ahora,
+        JornadaLaboral jornada,
+        List<MarcacionAsistencia> marcaciones)
+    {
+        var horaActual =
+            TimeOnly
+                .FromDateTime(
+                    ahora
+                );
+
+
+        var tieneEntrada =
+            marcaciones.Any(m =>
+                m.TipoMarcacion ==
+                "Entrada"
+            );
+
+
+        // =================================================
+        // TODAVÍA ESTAMOS EN EL PERÍODO DE ENTRADA
+        // =================================================
+
+        if (
+            horaActual <
+            jornada.HoraInicioAlmuerzo
+        )
+        {
+            return;
+        }
+
+
+        // =================================================
+        // SI EXISTE ENTRADA, PODEMOS CONTINUAR
+        // =================================================
+
+        if (
+            tieneEntrada
+        )
+        {
+            return;
+        }
+
+
+        // =================================================
+        // SALIDA SIN ENTRADA
+        // =================================================
+
+        if (
+            horaActual >=
+            jornada.HoraSalida
+        )
+        {
+            throw new InvalidOperationException(
+                "No es posible registrar la salida porque no existe una entrada registrada para hoy. " +
+                "Solicite a RRHH la regularización de la marcación faltante."
+            );
+        }
+
+
+        // =================================================
+        // ALMUERZO SIN ENTRADA
+        // =================================================
+
+        throw new InvalidOperationException(
+            "No es posible registrar una marcación de almuerzo porque no existe una entrada registrada para hoy. " +
+            "Solicite a RRHH la regularización de la marcación faltante."
+        );
     }
 
 
     // =====================================================
     // DETERMINAR TIPO DE MARCACIÓN
     // =====================================================
+
     private static string? DeterminarTipoMarcacion(
         DateTime ahora,
         JornadaLaboral jornada,
         List<MarcacionAsistencia> marcaciones)
     {
         var horaActual =
-            TimeOnly.FromDateTime(
-                ahora
-            );
+            TimeOnly
+                .FromDateTime(
+                    ahora
+                );
 
 
         var tieneEntrada =
             marcaciones.Any(m =>
                 m.TipoMarcacion ==
-                "Entrada");
+                "Entrada"
+            );
 
 
         var tieneInicioAlmuerzo =
             marcaciones.Any(m =>
                 m.TipoMarcacion ==
-                "InicioAlmuerzo");
+                "InicioAlmuerzo"
+            );
 
 
         var tieneFinAlmuerzo =
             marcaciones.Any(m =>
                 m.TipoMarcacion ==
-                "FinAlmuerzo");
+                "FinAlmuerzo"
+            );
 
 
         var tieneSalida =
             marcaciones.Any(m =>
                 m.TipoMarcacion ==
-                "Salida");
+                "Salida"
+            );
 
 
-        // =============================================
-        // SALIDA
-        // =============================================
+        // =================================================
+        // 1. SALIDA
+        //
+        // La salida tiene prioridad desde HoraSalida.
+        //
+        // REGLA:
+        // - requiere Entrada
+        // - NO requiere obligatoriamente almuerzos
+        //
+        // Esto permite:
+        //
+        // Entrada          08:02
+        // Inicio almuerzo  -
+        // Fin almuerzo     -
+        // Salida           17:04
+        //
+        // La salida es real y debe conservarse.
+        // La jornada quedará Incompleta.
+        // =================================================
+
         if (
             horaActual >=
             jornada.HoraSalida
         )
         {
-            return !tieneSalida
-                ? "Salida"
-                : null;
+            if (
+                !tieneEntrada
+            )
+            {
+                return null;
+            }
+
+
+            if (
+                !tieneSalida
+            )
+            {
+                return "Salida";
+            }
+
+
+            return null;
         }
 
 
-        // =============================================
-        // FIN DE ALMUERZO
-        // =============================================
+        // =================================================
+        // 2. FIN DE ALMUERZO
+        //
+        // Requiere:
+        // - Entrada
+        // - InicioAlmuerzo
+        // =================================================
+
         if (
             horaActual >=
             jornada.HoraFinAlmuerzo
         )
         {
             if (
+                tieneEntrada &&
                 tieneInicioAlmuerzo &&
                 !tieneFinAlmuerzo
             )
@@ -379,9 +573,12 @@ public class MarcacionService
         }
 
 
-        // =============================================
-        // INICIO DE ALMUERZO
-        // =============================================
+        // =================================================
+        // 3. INICIO DE ALMUERZO
+        //
+        // Requiere Entrada.
+        // =================================================
+
         if (
             horaActual >=
             jornada.HoraInicioAlmuerzo
@@ -400,10 +597,13 @@ public class MarcacionService
         }
 
 
-        // =============================================
-        // ENTRADA
-        // =============================================
-        if (!tieneEntrada)
+        // =================================================
+        // 4. ENTRADA
+        // =================================================
+
+        if (
+            !tieneEntrada
+        )
         {
             return "Entrada";
         }
@@ -416,250 +616,230 @@ public class MarcacionService
     // =====================================================
     // MENSAJE CUANDO NO HAY MARCACIÓN DISPONIBLE
     // =====================================================
+
     private static string
-        ConstruirMensajeMarcacionNoDisponible(
+        ObtenerMensajeSinMarcacionDisponible(
             DateTime ahora,
             JornadaLaboral jornada,
             List<MarcacionAsistencia> marcaciones)
     {
         var horaActual =
-            TimeOnly.FromDateTime(
-                ahora
+            TimeOnly
+                .FromDateTime(
+                    ahora
+                );
+
+
+        var tieneEntrada =
+            marcaciones.Any(m =>
+                m.TipoMarcacion ==
+                "Entrada"
             );
 
 
-        var entrada =
-            marcaciones.FirstOrDefault(m =>
+        var tieneInicioAlmuerzo =
+            marcaciones.Any(m =>
                 m.TipoMarcacion ==
-                "Entrada");
+                "InicioAlmuerzo"
+            );
 
 
-        var inicioAlmuerzo =
-            marcaciones.FirstOrDefault(m =>
+        var tieneFinAlmuerzo =
+            marcaciones.Any(m =>
                 m.TipoMarcacion ==
-                "InicioAlmuerzo");
+                "FinAlmuerzo"
+            );
 
 
-        var finAlmuerzo =
-            marcaciones.FirstOrDefault(m =>
+        var tieneSalida =
+            marcaciones.Any(m =>
                 m.TipoMarcacion ==
-                "FinAlmuerzo");
-
-
-        var salida =
-            marcaciones.FirstOrDefault(m =>
-                m.TipoMarcacion ==
-                "Salida");
+                "Salida"
+            );
 
 
         // =================================================
-        // JORNADA COMPLETA
+        // JORNADA YA FINALIZADA
         // =================================================
+
         if (
-            entrada is not null &&
-            inicioAlmuerzo is not null &&
-            finAlmuerzo is not null &&
-            salida is not null
+            tieneSalida
         )
         {
             return
-                "La jornada de hoy ya tiene todas sus " +
-                "marcaciones registradas.";
+                "La jornada de hoy ya registra una salida.";
         }
 
 
         // =================================================
-        // SALIDA YA REGISTRADA
+        // SALIDA SIN ENTRADA
+        // Protección adicional.
         // =================================================
-        if (salida is not null)
-        {
-            return
-                $"La salida de hoy ya fue registrada a las " +
-                $"{salida.FechaHora:HH:mm:ss}. " +
-                "No existen más marcaciones disponibles.";
-        }
 
-
-        // =================================================
-        // ANTES DEL INICIO DE ALMUERZO
-        // =================================================
         if (
-            entrada is not null &&
-            inicioAlmuerzo is null &&
-            horaActual <
-                jornada.HoraInicioAlmuerzo
-        )
-        {
-            return
-                $"La entrada ya fue registrada a las " +
-                $"{entrada.FechaHora:HH:mm:ss}. " +
-                $"La siguiente marcación corresponde al " +
-                $"inicio de almuerzo y estará disponible " +
-                $"a partir de las " +
-                $"{FormatearHora(jornada.HoraInicioAlmuerzo)}.";
-        }
-
-
-        // =================================================
-        // EN HORARIO DE INICIO DE ALMUERZO, PERO
-        // NO EXISTE ENTRADA
-        // =================================================
-        if (
-            entrada is null &&
             horaActual >=
-                jornada.HoraInicioAlmuerzo &&
-            horaActual <
-                jornada.HoraFinAlmuerzo
+                jornada.HoraSalida &&
+            !tieneEntrada
         )
         {
             return
-                "No existe una entrada activa registrada para hoy. " +
-                "No es posible registrar el inicio de almuerzo.";
+                "No es posible registrar la salida porque no existe una entrada registrada para hoy. " +
+                "Solicite a RRHH la regularización correspondiente.";
         }
 
 
         // =================================================
-        // INICIO DE ALMUERZO YA REGISTRADO,
-        // ESPERANDO FIN DE ALMUERZO
+        // OLVIDÓ INICIO DE ALMUERZO
         // =================================================
+
         if (
-            inicioAlmuerzo is not null &&
-            finAlmuerzo is null &&
-            horaActual <
-                jornada.HoraFinAlmuerzo
-        )
-        {
-            return
-                $"El inicio de almuerzo ya fue registrado a las " +
-                $"{inicioAlmuerzo.FechaHora:HH:mm:ss}. " +
-                $"La siguiente marcación corresponde al fin de " +
-                $"almuerzo y estará disponible a partir de las " +
-                $"{FormatearHora(jornada.HoraFinAlmuerzo)}.";
-        }
-
-
-        // =================================================
-        // FIN DE ALMUERZO YA REGISTRADO,
-        // ESPERANDO SALIDA
-        // =================================================
-        if (
-            finAlmuerzo is not null &&
-            salida is null &&
-            horaActual <
-                jornada.HoraSalida
-        )
-        {
-            return
-                $"El fin de almuerzo ya fue registrado a las " +
-                $"{finAlmuerzo.FechaHora:HH:mm:ss}. " +
-                $"La siguiente marcación corresponde a la salida " +
-                $"y estará disponible a partir de las " +
-                $"{FormatearHora(jornada.HoraSalida)}.";
-        }
-
-
-        // =================================================
-        // PASÓ FIN DE ALMUERZO PERO NO HUBO INICIO
-        // =================================================
-        if (
-            inicioAlmuerzo is null &&
             horaActual >=
                 jornada.HoraFinAlmuerzo &&
-            horaActual <
-                jornada.HoraSalida
+            tieneEntrada &&
+            !tieneInicioAlmuerzo
         )
         {
             return
-                "No existe un inicio de almuerzo registrado para hoy. " +
-                "No es posible registrar el fin de almuerzo.";
+                "No existe una marcación de inicio de almuerzo registrada. " +
+                "La marcación faltante deberá ser regularizada por RRHH.";
         }
 
 
         // =================================================
-        // CASO GENERAL
+        // FIN DE ALMUERZO YA REGISTRADO
         // =================================================
-        return
-            "No existe una marcación disponible para registrar " +
-            "en este momento.";
-    }
 
-
-    // =====================================================
-    // MENSAJE DE DUPLICADO
-    // =====================================================
-    private static string
-        ConstruirMensajeMarcacionDuplicada(
-            string tipoMarcacion)
-    {
-        return tipoMarcacion switch
+        if (
+            horaActual >=
+                jornada.HoraFinAlmuerzo &&
+            tieneFinAlmuerzo
+        )
         {
-            "Entrada" =>
-                "La entrada ya fue registrada hoy.",
+            return
+                "La marcación de fin de almuerzo ya fue registrada.";
+        }
 
-            "InicioAlmuerzo" =>
-                "El inicio de almuerzo ya fue registrado hoy.",
 
-            "FinAlmuerzo" =>
-                "El fin de almuerzo ya fue registrado hoy.",
+        // =================================================
+        // INICIO DE ALMUERZO YA REGISTRADO
+        // =================================================
 
-            "Salida" =>
-                "La salida ya fue registrada hoy.",
+        if (
+            horaActual >=
+                jornada.HoraInicioAlmuerzo &&
+            tieneInicioAlmuerzo
+        )
+        {
+            return
+                "La marcación de inicio de almuerzo ya fue registrada.";
+        }
 
-            _ =>
-                $"La marcación {tipoMarcacion} ya fue registrada hoy."
-        };
+
+        // =================================================
+        // ENTRADA YA REGISTRADA
+        // =================================================
+
+        if (
+            tieneEntrada
+        )
+        {
+            return
+                "La entrada ya fue registrada. No existe otra marcación disponible en este momento.";
+        }
+
+
+        return
+            "No existe una marcación disponible para registrar en este momento.";
     }
 
 
     // =====================================================
-    // MENSAJE DE ÉXITO
+    // MENSAJE DE REGISTRO
     // =====================================================
-    private static string
-        ConstruirMensajeExito(
-            string tipoMarcacion,
-            DateTime fechaHora)
+
+    private static string ObtenerMensajeRegistro(
+        string tipoMarcacion,
+        EstadoMarcacionDiaDto estadoDia)
     {
-        var hora =
-            fechaHora.ToString(
-                "HH:mm:ss"
+        var nombre =
+            ObtenerNombreTipo(
+                tipoMarcacion
             );
 
 
-        return tipoMarcacion switch
+        // =================================================
+        // SALIDA CON JORNADA INCOMPLETA
+        // =================================================
+
+        if (
+            tipoMarcacion ==
+                "Salida" &&
+            !estadoDia.Completa
+        )
         {
-            "Entrada" =>
-                $"Entrada registrada correctamente a las {hora}.",
+            var faltantes =
+                estadoDia
+                    .MarcacionesFaltantes
+                    .Where(m =>
+                        m !=
+                        "Salida"
+                    )
+                    .Select(
+                        ObtenerNombreTipo
+                    )
+                    .ToList();
 
-            "InicioAlmuerzo" =>
-                $"Inicio de almuerzo registrado correctamente a las {hora}.",
 
-            "FinAlmuerzo" =>
-                $"Fin de almuerzo registrado correctamente a las {hora}.",
+            if (
+                faltantes.Count >
+                0
+            )
+            {
+                return
+                    $"{nombre} registrada correctamente. " +
+                    $"La jornada quedó incompleta por marcaciones faltantes: " +
+                    $"{string.Join(", ", faltantes)}. " +
+                    "Solicite la regularización a RRHH.";
+            }
+        }
 
-            "Salida" =>
-                $"Salida registrada correctamente a las {hora}.",
 
-            _ =>
-                $"{tipoMarcacion} registrada correctamente a las {hora}."
-        };
+        return
+            $"{nombre} registrada correctamente.";
     }
 
 
     // =====================================================
-    // FORMATEAR HORA
+    // NOMBRE AMIGABLE
     // =====================================================
-    private static string FormatearHora(
-        TimeOnly hora)
+
+    private static string ObtenerNombreTipo(
+        string tipo)
     {
-        return hora.ToString(
-            "HH:mm"
-        );
+        return tipo switch
+        {
+            "Entrada" =>
+                "Entrada",
+
+            "InicioAlmuerzo" =>
+                "Inicio de almuerzo",
+
+            "FinAlmuerzo" =>
+                "Fin de almuerzo",
+
+            "Salida" =>
+                "Salida",
+
+            _ =>
+                tipo
+        };
     }
 
 
     // =====================================================
     // ESTADO DEL DÍA
     // =====================================================
+
     private static EstadoMarcacionDiaDto
         ObtenerEstadoDia(
             long idEmpleado,
@@ -669,11 +849,14 @@ public class MarcacionService
             List<MarcacionAsistencia> marcaciones)
     {
         var entrada =
-            marcaciones.FirstOrDefault(m =>
-                m.TipoMarcacion ==
-                    "Entrada" &&
-                m.EstadoMarcacion ==
-                    "Activa");
+            marcaciones
+                .FirstOrDefault(m =>
+                    m.TipoMarcacion ==
+                        "Entrada" &&
+
+                    m.EstadoMarcacion ==
+                        "Activa"
+                );
 
 
         var tieneEntrada =
@@ -684,32 +867,44 @@ public class MarcacionService
             marcaciones.Any(m =>
                 m.TipoMarcacion ==
                     "InicioAlmuerzo" &&
+
                 m.EstadoMarcacion ==
-                    "Activa");
+                    "Activa"
+            );
 
 
         var tieneFinAlmuerzo =
             marcaciones.Any(m =>
                 m.TipoMarcacion ==
                     "FinAlmuerzo" &&
+
                 m.EstadoMarcacion ==
-                    "Activa");
+                    "Activa"
+            );
 
 
         var tieneSalida =
             marcaciones.Any(m =>
                 m.TipoMarcacion ==
                     "Salida" &&
-                m.EstadoMarcacion ==
-                    "Activa");
 
+                m.EstadoMarcacion ==
+                    "Activa"
+            );
+
+
+        // =================================================
+        // PUNTUALIDAD
+        // =================================================
 
         EstadoEntradaDto?
             estadoEntrada =
-            null;
+                null;
 
 
-        if (entrada is not null)
+        if (
+            entrada is not null
+        )
         {
             estadoEntrada =
                 CalcularEstadoEntrada(
@@ -719,11 +914,17 @@ public class MarcacionService
         }
 
 
+        // =================================================
+        // FALTANTES
+        // =================================================
+
         var faltantes =
             new List<string>();
 
 
-        if (!tieneEntrada)
+        if (
+            !tieneEntrada
+        )
         {
             faltantes.Add(
                 "Entrada"
@@ -731,7 +932,9 @@ public class MarcacionService
         }
 
 
-        if (!tieneInicioAlmuerzo)
+        if (
+            !tieneInicioAlmuerzo
+        )
         {
             faltantes.Add(
                 "InicioAlmuerzo"
@@ -739,7 +942,9 @@ public class MarcacionService
         }
 
 
-        if (!tieneFinAlmuerzo)
+        if (
+            !tieneFinAlmuerzo
+        )
         {
             faltantes.Add(
                 "FinAlmuerzo"
@@ -747,7 +952,9 @@ public class MarcacionService
         }
 
 
-        if (!tieneSalida)
+        if (
+            !tieneSalida
+        )
         {
             faltantes.Add(
                 "Salida"
@@ -779,14 +986,17 @@ public class MarcacionService
                 tieneSalida,
 
             EstadoEntrada =
-                estadoEntrada?.Estado,
+                estadoEntrada?
+                    .Estado,
 
             MinutosAtraso =
-                estadoEntrada?.MinutosAtraso ??
+                estadoEntrada?
+                    .MinutosAtraso ??
                 0,
 
             Completa =
-                faltantes.Count == 0,
+                faltantes.Count ==
+                0,
 
             MarcacionesFaltantes =
                 faltantes
@@ -797,19 +1007,22 @@ public class MarcacionService
     // =====================================================
     // PUNTUALIDAD
     // =====================================================
+
     private static EstadoEntradaDto
         CalcularEstadoEntrada(
             JornadaLaboral jornada,
             DateTime fechaHoraMarcacion)
     {
         var horaMarcacion =
-            TimeOnly.FromDateTime(
-                fechaHoraMarcacion
-            );
+            TimeOnly
+                .FromDateTime(
+                    fechaHoraMarcacion
+                );
 
 
         var horaLimite =
-            jornada.HoraEntrada
+            jornada
+                .HoraEntrada
                 .AddMinutes(
                     jornada
                         .ToleranciaEntradaMinutos
@@ -846,8 +1059,10 @@ public class MarcacionService
 
 
         var diferencia =
-            horaMarcacion.ToTimeSpan() -
-            horaLimite.ToTimeSpan();
+            horaMarcacion
+                .ToTimeSpan() -
+            horaLimite
+                .ToTimeSpan();
 
 
         return new EstadoEntradaDto
@@ -880,6 +1095,7 @@ public class MarcacionService
     // =====================================================
     // DÍA LABORABLE
     // =====================================================
+
     private static bool TrabajaHoy(
         JornadaLaboral jornada,
         DayOfWeek dia)

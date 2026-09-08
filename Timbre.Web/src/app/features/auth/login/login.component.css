@@ -1,91 +1,784 @@
+:host {
+  display: block;
+}
+
+
+/* =========================================================
+   PÁGINA
+========================================================= */
+
 .login-page {
   min-height: 100vh;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #eef1f5;
-  padding: 24px;
+
+  box-sizing: border-box;
+
+  padding: 28px;
+
+  background: #f3f5f8;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
 }
 
-.login-card {
+
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+========================================================= */
+
+.login-shell {
   width: 100%;
-  max-width: 420px;
-  background: white;
-  border: 1px solid #d7dde6;
-  border-radius: 12px;
-  padding: 32px;
+  max-width: 980px;
+  min-height: 590px;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 0.9fr)
+    minmax(420px, 1.1fr);
+
+  overflow: hidden;
+
+  border: 1px solid #e1e5eb;
+  border-radius: 18px;
+
+  background: #ffffff;
+
   box-shadow:
-    0 12px 32px
-    rgba(0, 0, 0, 0.08);
+    0 24px 60px
+    rgba(16, 24, 40, 0.10);
 }
+
+
+/* =========================================================
+   PANEL IZQUIERDO
+========================================================= */
+
+.brand-panel {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  padding: 48px;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      145deg,
+      #17366f 0%,
+      #214796 55%,
+      #2854ab 100%
+    );
+
+  color: #ffffff;
+}
+
+
+/* decoración discreta */
+
+.brand-panel::before {
+  content: '';
+
+  position: absolute;
+
+  width: 300px;
+  height: 300px;
+
+  right: -150px;
+  top: -120px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.06);
+}
+
+
+.brand-panel::after {
+  content: '';
+
+  position: absolute;
+
+  width: 230px;
+  height: 230px;
+
+  left: -120px;
+  bottom: -120px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.05);
+}
+
+
+.brand-content,
+.brand-footer {
+  position: relative;
+
+  z-index: 1;
+}
+
+
+.brand-logo {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 35px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.28);
+
+  border-radius: 12px;
+
+  background:
+    rgba(255, 255, 255, 0.10);
+
+  color: #ffffff;
+
+  font-size: 16px;
+  font-weight: 800;
+
+  letter-spacing: 0.03em;
+}
+
+
+.brand-eyebrow {
+  display: block;
+
+  margin-bottom: 10px;
+
+  color:
+    rgba(255, 255, 255, 0.75);
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: 0.12em;
+}
+
+
+.brand-content h1 {
+  max-width: 330px;
+
+  margin: 0 0 14px;
+
+  color: #ffffff;
+
+  font-size: 32px;
+  line-height: 1.15;
+}
+
+
+.brand-content > p {
+  max-width: 340px;
+
+  margin:
+    0 0 34px;
+
+  color:
+    rgba(255, 255, 255, 0.78);
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   BENEFICIOS
+========================================================= */
+
+.brand-feature {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  margin-bottom: 14px;
+
+  color:
+    rgba(255, 255, 255, 0.88);
+
+  font-size: 11px;
+}
+
+
+.feature-icon {
+  width: 22px;
+  height: 22px;
+
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.12);
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+
+.brand-footer {
+  padding-top: 25px;
+
+  color:
+    rgba(255, 255, 255, 0.5);
+
+  font-size: 9px;
+}
+
+
+/* =========================================================
+   PANEL DEL FORMULARIO
+========================================================= */
+
+.form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  padding: 55px 64px;
+
+  background: #ffffff;
+}
+
+
+.form-container {
+  width: 100%;
+  max-width: 410px;
+}
+
+
+/* =========================================================
+   CABECERA
+========================================================= */
 
 .login-header {
-  margin-bottom: 28px;
-  text-align: center;
+  margin-bottom: 32px;
 }
 
-.login-header h1 {
-  margin: 0 0 8px;
-  color: #172033;
-  font-size: 26px;
+
+.eyebrow {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #214796;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
 }
+
+
+.login-header h2 {
+  margin: 0 0 8px;
+
+  color: #172033;
+
+  font-size: 28px;
+  line-height: 1.2;
+}
+
 
 .login-header p {
   margin: 0;
+
   color: #667085;
+
+  font-size: 13px;
+
+  line-height: 1.5;
 }
 
+
+/* =========================================================
+   FORMULARIO
+========================================================= */
+
 .form-group {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
+
 
 .form-group label {
   display: block;
+
   margin-bottom: 7px;
-  color: #172033;
-  font-weight: 600;
+
+  color: #344054;
+
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.form-group input {
-  width: 100%;
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+.input-wrapper {
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+
   box-sizing: border-box;
-  border: 1px solid #d7dde6;
+
+  overflow: hidden;
+
+  border: 1px solid #d0d5dd;
+
   border-radius: 8px;
-  padding: 12px 14px;
-  font-size: 15px;
+
+  background: #ffffff;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.form-group input:focus {
-  outline: none;
+
+.input-wrapper:focus-within {
   border-color: #214796;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(33, 71, 150, 0.08);
 }
 
-button {
-  width: 100%;
+
+.input-wrapper.invalid {
+  border-color: #d92d20;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(217, 45, 32, 0.06);
+}
+
+
+.input-icon {
+  width: 42px;
+
+  flex: 0 0 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #98a2b3;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+
+.password-symbol {
+  font-size: 20px;
+}
+
+
+.input-wrapper input {
+  min-width: 0;
+  height: 46px;
+
+  flex: 1;
+
+  box-sizing: border-box;
+
+  padding: 0 10px 0 0;
+
   border: 0;
-  border-radius: 8px;
-  padding: 13px;
-  background: #214796;
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
+
+  outline: 0;
+
+  background: transparent;
+
+  color: #172033;
+
+  font-family: inherit;
+  font-size: 13px;
+}
+
+
+.input-wrapper input::placeholder {
+  color: #98a2b3;
+}
+
+
+.input-wrapper input:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.7;
+}
+
+
+/* =========================================================
+   MOSTRAR CONTRASEÑA
+========================================================= */
+
+.password-toggle {
+  height: 32px;
+
+  flex: 0 0 auto;
+
+  margin-right: 7px;
+
+  padding: 0 9px;
+
+  border: 0;
+
+  border-radius: 5px;
+
+  background: transparent;
+
+  color: #475467;
+
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 700;
+
   cursor: pointer;
 }
 
-button:hover:not(:disabled) {
-  background: #193a7a;
+
+.password-toggle:hover:not(:disabled) {
+  background: #f2f4f7;
+
+  color: #214796;
 }
 
-button:disabled {
-  opacity: 0.65;
+
+.password-toggle:disabled {
   cursor: not-allowed;
+
+  opacity: 0.5;
 }
 
-.error {
-  margin-bottom: 16px;
-  padding: 10px 12px;
-  background: #fef3f2;
+
+/* =========================================================
+   ERRORES DE CAMPO
+========================================================= */
+
+.field-error {
+  display: block;
+
+  margin-top: 5px;
+
   color: #b42318;
+
+  font-size: 9px;
+}
+
+
+/* =========================================================
+   ERROR DEL BACKEND
+========================================================= */
+
+.form-error {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+
+  margin:
+    4px 0 18px;
+
+  padding: 11px 12px;
+
+  border: 1px solid #fecdca;
+
   border-radius: 7px;
-  font-size: 14px;
+
+  background: #fef3f2;
+
+  color: #b42318;
+
+  font-size: 10px;
+
+  line-height: 1.45;
+}
+
+
+.form-error-icon {
+  width: 18px;
+  height: 18px;
+
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #fee4e2;
+
+  color: #b42318;
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   BOTÓN INGRESAR
+========================================================= */
+
+.btn-primary {
+  width: 100%;
+  min-height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 6px;
+
+  border: 1px solid #214796;
+
+  border-radius: 8px;
+
+  background: #214796;
+
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 10px
+    rgba(33, 71, 150, 0.16);
+
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+
+.btn-primary:hover:not(:disabled) {
+  background: #193a7a;
+
+  box-shadow:
+    0 6px 15px
+    rgba(33, 71, 150, 0.22);
+
+  transform:
+    translateY(-1px);
+}
+
+
+.btn-primary:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.65;
+
+  box-shadow: none;
+
+  transform: none;
+}
+
+
+/* =========================================================
+   CARGANDO
+========================================================= */
+
+.button-content {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+}
+
+
+.button-spinner {
+  width: 14px;
+  height: 14px;
+
+  box-sizing: border-box;
+
+  border: 2px solid
+    rgba(255, 255, 255, 0.35);
+
+  border-top-color: #ffffff;
+
+  border-radius: 50%;
+
+  animation:
+    login-spin
+    0.75s
+    linear
+    infinite;
+}
+
+
+@keyframes login-spin {
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+
+}
+
+
+/* =========================================================
+   REGRESAR AL KIOSKO
+========================================================= */
+
+.back-section {
+  display: flex;
+  justify-content: center;
+
+  margin-top: 27px;
+}
+
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 6px 8px;
+
+  border-radius: 6px;
+
+  color: #667085;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  text-decoration: none;
+
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+
+.back-link:hover {
+  background: #f2f4f7;
+
+  color: #214796;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (
+  max-width: 850px
+) {
+
+  .login-shell {
+    max-width: 520px;
+
+    grid-template-columns: 1fr;
+  }
+
+
+  .brand-panel {
+    padding: 28px 32px;
+  }
+
+
+  .brand-logo {
+    margin-bottom: 18px;
+  }
+
+
+  .brand-content h1 {
+    font-size: 25px;
+  }
+
+
+  .brand-content > p {
+    margin-bottom: 0;
+  }
+
+
+  .brand-feature,
+  .brand-footer {
+    display: none;
+  }
+
+
+  .form-panel {
+    padding: 42px 40px;
+  }
+
+}
+
+
+@media (
+  max-width: 520px
+) {
+
+  .login-page {
+    align-items: stretch;
+
+    padding: 0;
+
+    background: #ffffff;
+  }
+
+
+  .login-shell {
+    min-height: 100vh;
+
+    border: 0;
+    border-radius: 0;
+
+    box-shadow: none;
+  }
+
+
+  .brand-panel {
+    padding: 24px;
+  }
+
+
+  .brand-content h1 {
+    font-size: 22px;
+  }
+
+
+  .form-panel {
+    align-items: flex-start;
+
+    padding: 36px 24px;
+  }
+
+
+  .login-header h2 {
+    font-size: 25px;
+  }
+
 }

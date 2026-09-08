@@ -8,6 +8,7 @@
 
   <aside class="sidebar">
 
+
     <!-- ====================================
          MARCA
     ===================================== -->
@@ -17,6 +18,7 @@
       <div class="brand-icon">
         CA
       </div>
+
 
       <div class="brand-text">
 
@@ -48,7 +50,9 @@
         puedeAdministrar
       ) {
 
-        <!-- DASHBOARD -->
+        <!-- ================================
+             DASHBOARD
+        ================================= -->
 
         <a
           routerLink="/admin/dashboard"
@@ -65,7 +69,9 @@
         </a>
 
 
-        <!-- EMPLEADOS -->
+        <!-- ================================
+             EMPLEADOS
+        ================================= -->
 
         <a
           routerLink="/admin/empleados"
@@ -82,7 +88,9 @@
         </a>
 
 
-        <!-- JORNADAS -->
+        <!-- ================================
+             JORNADAS
+        ================================= -->
 
         <a
           routerLink="/admin/jornadas"
@@ -99,7 +107,9 @@
         </a>
 
 
-        <!-- MARCACIONES -->
+        <!-- ================================
+             MARCACIONES
+        ================================= -->
 
         <a
           routerLink="/admin/marcaciones"
@@ -116,76 +126,70 @@
         </a>
 
 
-        <!--
-          HISTORIAL
+        <!-- ================================
+             HISTORIAL
+        ================================= -->
 
-          Lo activaremos cuando creemos
-          /admin/historial.
+        <a
+          routerLink="/admin/historial"
+          routerLinkActive="active">
 
-          <a
-            routerLink="/admin/historial"
-            routerLinkActive="active">
+          <span class="nav-icon">
+            ≡
+          </span>
 
-            <span class="nav-icon">
-              ≡
-            </span>
+          <span class="nav-label">
+            Historial
+          </span>
 
-            <span class="nav-label">
-              Historial
-            </span>
-
-          </a>
-        -->
+        </a>
 
 
-        <!--
-          REPORTES
+        <!-- ================================
+             MI ASISTENCIA
+        ================================= -->
 
-          Lo activaremos cuando creemos
-          /admin/reportes.
+        <a
+          routerLink="/admin/mi-asistencia"
+          routerLinkActive="active">
 
-          <a
-            routerLink="/admin/reportes"
-            routerLinkActive="active">
+          <span class="nav-icon">
+            ◷
+          </span>
 
-            <span class="nav-icon">
-              ▤
-            </span>
+          <span class="nav-label">
+            Mi asistencia
+          </span>
 
-            <span class="nav-label">
-              Reportes
-            </span>
+        </a>
 
-          </a>
-        -->
+
+        <!-- ================================
+             REPORTES
+             
+             Lo habilitaremos cuando creemos
+             /admin/reportes
+        ================================= -->
+
+        <a
+          routerLink="/admin/reportes"
+          routerLinkActive="active">
+
+          <span class="nav-icon">
+            ▤
+          </span>
+
+          <span class="nav-label">
+            Reportes
+          </span>
+
+        </a>
 
       }
 
 
       <!-- ==================================
-           MI ASISTENCIA
-      =================================== -->
-
-      <div class="nav-separator">
-      </div>
-
-
-      <a
-        routerLink="/mi-asistencia"
-        routerLinkActive="active">
-
-        <span class="nav-icon">
-          ◷
-        </span>
-
-        <span class="nav-label">
-          Mi asistencia
-        </span>
-
-      </a>
-
-
-      <!-- ==================================
+           SEGURIDAD
            SOLO ADMINISTRADOR
       =================================== -->
 
@@ -197,7 +201,9 @@
         </div>
 
 
-        <!-- USUARIOS -->
+        <!-- ================================
+             USUARIOS
+        ================================= -->
 
         <a
           routerLink="/admin/usuarios"
@@ -214,7 +220,9 @@
         </a>
 
 
-        <!-- AUDITORÍA -->
+        <!-- ================================
+             AUDITORÍA
+        ================================= -->
 
         <a
           routerLink="/admin/auditoria"
@@ -284,7 +292,7 @@
 
 
   <!-- ======================================
-       CONTENIDO
+       ÁREA PRINCIPAL
   ======================================= -->
 
   <section class="main-area">
@@ -355,7 +363,7 @@
 
 
     <!-- ====================================
-         CONTENIDO DE LA RUTA
+         CONTENIDO
     ===================================== -->
 
     <main class="content">

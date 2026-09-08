@@ -5,67 +5,157 @@ export type TipoMarcacion =
   | 'Salida';
 
 
+export type OrigenMarcacion =
+  | 'Facial'
+  | 'Manual'
+  | 'Regularización';
+
+
 export interface MarcacionAdmin {
 
-  idMarcacion: number;
+  idMarcacion:
+    number;
 
-  idEmpleado: number;
+  idEmpleado:
+    number;
 
-  identificacion: string;
+  identificacion:
+    string;
 
-  empleado: string;
+  empleado:
+    string;
 
-  area?: string | null;
+  area?:
+    string | null;
 
-  cargo?: string | null;
+  cargo?:
+    string | null;
 
-  fechaMarcacion: string;
+  fechaMarcacion:
+    string;
 
-  fechaHora: string;
+  fechaHora:
+    string;
 
-  tipoMarcacion: string;
+  tipoMarcacion:
+    string;
 
-  estadoMarcacion: string;
+  estadoMarcacion:
+    string;
 
-  observacion?: string | null;
+  observacion?:
+    string | null;
 
-  esFacial: boolean;
+  esFacial:
+    boolean;
 
-  similitud?: number | null;
+  origen?:
+    string | null;
 
-  umbral?: number | null;
+  similitud?:
+    number | null;
 
-  aprobadoFacial?: boolean | null;
+  umbral?:
+    number | null;
+
+  aprobadoFacial?:
+    boolean | null;
+
 }
 
 
 export interface ConsultaMarcacionesResponse {
 
-  fecha: string;
+  fecha:
+    string;
 
-  total: number;
+  total:
+    number;
 
   marcaciones:
     MarcacionAdmin[];
+
 }
 
 
 export interface CorreccionManualMarcacion {
 
-  idEmpleado: number;
+  idEmpleado:
+    number;
 
-  fecha: string;
+  fecha:
+    string;
 
-  hora: string;
+  hora:
+    string;
 
   tipoMarcacion:
     TipoMarcacion;
 
-  motivo: string;
+  motivo:
+    string;
+
+}
+
+
+export interface RegularizarMarcacion {
+
+  idEmpleado:
+    number;
+
+  fecha:
+    string;
+
+  hora:
+    string;
+
+  tipoMarcacion:
+    TipoMarcacion;
+
+  motivo:
+    string;
+
+}
+
+
+export interface RegularizarMarcacionResponse {
+
+  idMarcacion:
+    number;
+
+  idEmpleado:
+    number;
+
+  empleado:
+    string;
+
+  fecha:
+    string;
+
+  hora:
+    string;
+
+  tipoMarcacion:
+    string;
+
+  estadoMarcacion:
+    string;
+
+  origen:
+    string;
+
+  motivo:
+    string;
+
+  mensaje:
+    string;
+
 }
 
 
 export interface AnularMarcacion {
 
-  motivo: string;
+  motivo:
+    string;
+
 }

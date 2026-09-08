@@ -3,7 +3,8 @@ import {
 } from '@angular/core';
 
 import {
-  HttpClient
+  HttpClient,
+  HttpParams
 } from '@angular/common/http';
 
 import {
@@ -17,12 +18,15 @@ import {
 import {
   AnularMarcacion,
   ConsultaMarcacionesResponse,
-  CorreccionManualMarcacion
+  CorreccionManualMarcacion,
+  RegularizarMarcacion,
+  RegularizarMarcacionResponse
 } from './marcacion.models';
 
 
 @Injectable({
-  providedIn: 'root'
+  providedIn:
+    'root'
 })
 export class MarcacionesService {
 
@@ -37,20 +41,41 @@ export class MarcacionesService {
   }
 
 
+  // =====================================================
+  // CONSULTAR
+  // =====================================================
+
   consultar(
-    fecha: string
+    fecha:
+      string
   ):
     Observable<
       ConsultaMarcacionesResponse
     > {
 
+    const params =
+      new HttpParams()
+        .set(
+          'fecha',
+          fecha
+        );
+
+
     return this.http.get<
       ConsultaMarcacionesResponse
     >(
-      `${this.adminUrl}/consulta?fecha=${fecha}`
+      `${this.adminUrl}/consulta`,
+      {
+        params
+      }
     );
+
   }
 
+
+  // =====================================================
+  // CORRECCIÓN MANUAL
+  // =====================================================
 
   crearCorreccion(
     dto:
@@ -68,12 +93,42 @@ export class MarcacionesService {
       `${this.adminUrl}/correccion`,
       dto
     );
+
   }
 
 
+  // =====================================================
+  // REGULARIZAR MARCACIÓN FALTANTE
+  // =====================================================
+
+  regularizar(
+    dto:
+      RegularizarMarcacion
+  ):
+    Observable<
+      RegularizarMarcacionResponse
+    > {
+
+    return this.http.post<
+      RegularizarMarcacionResponse
+    >(
+      `${this.adminUrl}/regularizar`,
+      dto
+    );
+
+  }
+
+
+  // =====================================================
+  // ANULAR
+  // =====================================================
+
   anular(
-    idMarcacion: number,
-    dto: AnularMarcacion
+    idMarcacion:
+      number,
+
+    dto:
+      AnularMarcacion
   ):
     Observable<{
       mensaje: string;
@@ -85,6 +140,7 @@ export class MarcacionesService {
       `${this.adminUrl}/${idMarcacion}/anular`,
       dto
     );
+
   }
 
 }

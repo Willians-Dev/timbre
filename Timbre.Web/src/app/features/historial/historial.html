@@ -1,0 +1,909 @@
+<section class="page">
+
+  <!-- =================================================
+       HEADER
+  ================================================== -->
+
+  <div class="page-header">
+
+    <div>
+
+      <span class="eyebrow">
+        ASISTENCIA
+      </span>
+
+      <h1>
+        Historial
+      </h1>
+
+      <p>
+        Consulte las jornadas y marcaciones
+        registradas por período.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- =================================================
+       FILTROS
+  ================================================== -->
+
+  <section class="filters-card">
+
+    <div class="filters-grid">
+
+      <div class="field">
+
+        <label>
+          Desde
+        </label>
+
+        <input
+          type="date"
+          [ngModel]="fechaDesde()"
+          (ngModelChange)="
+            fechaDesde.set($event)
+          ">
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Hasta
+        </label>
+
+        <input
+          type="date"
+          [ngModel]="fechaHasta()"
+          (ngModelChange)="
+            fechaHasta.set($event)
+          ">
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Empleado
+        </label>
+
+        <select
+          [ngModel]="idEmpleado()"
+          (ngModelChange)="
+            idEmpleado.set(
+              $event
+                ? +$event
+                : null
+            )
+          ">
+
+          <option
+            [ngValue]="null">
+
+            Todos
+
+          </option>
+
+
+          @for (
+            empleado
+            of empleados();
+            track empleado.idEmpleado
+          ) {
+
+            <option
+              [ngValue]="
+                empleado.idEmpleado
+              ">
+
+              {{ empleado.nombre }}
+
+            </option>
+
+          }
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Área
+        </label>
+
+        <select
+          [ngModel]="area()"
+          (ngModelChange)="
+            area.set($event)
+          ">
+
+          <option value="">
+            Todas
+          </option>
+
+
+          @for (
+            item
+            of areas();
+            track item
+          ) {
+
+            <option
+              [value]="item">
+
+              {{ item }}
+
+            </option>
+
+          }
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Jornada
+        </label>
+
+        <select
+          [ngModel]="estadoJornada()"
+          (ngModelChange)="
+            estadoJornada.set($event)
+          ">
+
+          <option value="">
+            Todas
+          </option>
+
+          <option value="Completa">
+            Completa
+          </option>
+
+          <option value="Incompleta">
+            Incompleta
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Entrada
+        </label>
+
+        <select
+          [ngModel]="estadoEntrada()"
+          (ngModelChange)="
+            estadoEntrada.set($event)
+          ">
+
+          <option value="">
+            Todas
+          </option>
+
+          <option value="Puntual">
+            Puntual
+          </option>
+
+          <option value="Atraso">
+            Atraso
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Origen
+        </label>
+
+        <select
+          [ngModel]="origen()"
+          (ngModelChange)="
+            origen.set($event)
+          ">
+
+          <option value="">
+            Todos
+          </option>
+
+          <option value="Facial">
+            Facial
+          </option>
+
+          <option value="Manual">
+            Manual
+          </option>
+
+          <option value="Mixto">
+            Mixto
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="filter-actions">
+
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="limpiarFiltros()">
+
+          Limpiar
+
+        </button>
+
+
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="cargando()"
+          (click)="consultar()">
+
+          {{
+            cargando()
+              ? 'Consultando...'
+              : 'Consultar'
+          }}
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =================================================
+       RESUMEN
+  ================================================== -->
+
+  <div class="stats-grid">
+
+    <article class="stat-card">
+
+      <span>
+        Registros
+      </span>
+
+      <strong>
+        {{ total() }}
+      </strong>
+
+    </article>
+
+
+    <article class="stat-card">
+
+      <span>
+        Jornadas completas
+      </span>
+
+      <strong>
+        {{ completas() }}
+      </strong>
+
+    </article>
+
+
+    <article class="stat-card">
+
+      <span>
+        Jornadas incompletas
+      </span>
+
+      <strong>
+        {{ incompletas() }}
+      </strong>
+
+    </article>
+
+
+    <article class="stat-card">
+
+      <span>
+        Atrasos
+      </span>
+
+      <strong
+        [class.warning-value]="
+          atrasos() > 0
+        ">
+
+        {{ atrasos() }}
+
+      </strong>
+
+    </article>
+
+  </div>
+
+
+  <!-- =================================================
+       RESULTADOS
+  ================================================== -->
+
+  <section class="table-card">
+
+    <div class="table-header">
+
+      <div>
+
+        <h2>
+          Registros de asistencia
+        </h2>
+
+        <p>
+          Una fila representa la jornada
+          de un empleado en una fecha.
+        </p>
+
+      </div>
+
+
+      <div class="search-box">
+
+        <span>
+          ⌕
+        </span>
+
+        <input
+          type="text"
+          placeholder="Buscar empleado, identificación o área"
+          [ngModel]="buscar()"
+          (ngModelChange)="
+            buscar.set($event)
+          ">
+
+      </div>
+
+    </div>
+
+
+    @if (
+      cargando()
+    ) {
+
+      <div class="state-message">
+        Consultando historial...
+      </div>
+
+    }
+    @else if (
+      registrosFiltrados()
+        .length ===
+      0
+    ) {
+
+      <div class="state-message">
+        No existen registros para los filtros seleccionados.
+      </div>
+
+    }
+    @else {
+
+      <div class="table-scroll">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>
+                Empleado
+              </th>
+
+              <th>
+                Fecha
+              </th>
+
+              <th>
+                Entrada
+              </th>
+
+              <th>
+                Inicio almuerzo
+              </th>
+
+              <th>
+                Fin almuerzo
+              </th>
+
+              <th>
+                Salida
+              </th>
+
+              <th>
+                Entrada
+              </th>
+
+              <th>
+                Jornada
+              </th>
+
+              <th>
+                Origen
+              </th>
+
+              <th class="actions-column">
+                Acción
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            @for (
+              registro
+              of registrosFiltrados();
+              track
+                registro.idEmpleado +
+                '-' +
+                registro.fecha
+            ) {
+
+              <tr>
+
+                <td>
+
+                  <div class="employee-cell">
+
+                    <strong>
+                      {{ registro.empleado }}
+                    </strong>
+
+                    <span>
+                      {{ registro.identificacion }}
+
+                      @if (
+                        registro.area
+                      ) {
+
+                        ·
+                        {{ registro.area }}
+
+                      }
+
+                    </span>
+
+                  </div>
+
+                </td>
+
+
+                <td>
+                  {{
+                    formatearFecha(
+                      registro.fecha
+                    )
+                  }}
+                </td>
+
+
+                <td class="time-cell">
+
+                  {{
+                    formatearHora(
+                      registro.entrada
+                    )
+                  }}
+
+                </td>
+
+
+                <td class="time-cell">
+
+                  {{
+                    formatearHora(
+                      registro.inicioAlmuerzo
+                    )
+                  }}
+
+                </td>
+
+
+                <td class="time-cell">
+
+                  {{
+                    formatearHora(
+                      registro.finAlmuerzo
+                    )
+                  }}
+
+                </td>
+
+
+                <td class="time-cell">
+
+                  {{
+                    formatearHora(
+                      registro.salida
+                    )
+                  }}
+
+                </td>
+
+
+                <td>
+
+                  @if (
+                    registro.estadoEntrada
+                  ) {
+
+                    <span
+                      class="badge"
+                      [class.warning]="
+                        registro.estadoEntrada ===
+                        'Atraso'
+                      "
+                      [class.success]="
+                        registro.estadoEntrada ===
+                        'Puntual'
+                      ">
+
+                      {{
+                        registro.estadoEntrada
+                      }}
+
+                      @if (
+                        registro.minutosAtraso >
+                        0
+                      ) {
+
+                        ·
+                        {{
+                          registro.minutosAtraso
+                        }}
+                        min
+
+                      }
+
+                    </span>
+
+                  }
+                  @else {
+
+                    <span class="muted">
+                      Sin entrada
+                    </span>
+
+                  }
+
+                </td>
+
+
+                <td>
+
+                  <span
+                    class="badge"
+                    [class.success]="
+                      registro.completa
+                    "
+                    [class.neutral]="
+                      !registro.completa
+                    ">
+
+                    {{
+                      registro.estadoJornada
+                    }}
+
+                  </span>
+
+                </td>
+
+
+                <td>
+
+                  <span
+                    class="origin-badge"
+                    [class.facial]="
+                      registro.origen ===
+                      'Facial'
+                    "
+                    [class.mixed]="
+                      registro.origen ===
+                      'Mixto'
+                    ">
+
+                    {{ registro.origen }}
+
+                  </span>
+
+                </td>
+
+
+                <td class="actions-column">
+
+                  <button
+                    type="button"
+                    class="detail-button"
+                    (click)="
+                      abrirDetalle(
+                        registro
+                      )
+                    ">
+
+                    Ver detalle
+
+                  </button>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    }
+
+  </section>
+
+
+  <!-- =================================================
+       MODAL DETALLE
+  ================================================== -->
+
+  @if (
+    registroDetalle()
+  ) {
+
+    <div
+      class="modal-backdrop"
+      (click)="cerrarDetalle()">
+
+      <section
+        class="detail-modal"
+        (click)="
+          $event.stopPropagation()
+        ">
+
+        <div class="modal-header">
+
+          <div>
+
+            <span class="eyebrow">
+              DETALLE DE JORNADA
+            </span>
+
+            <h2>
+              {{
+                registroDetalle()!
+                  .empleado
+              }}
+            </h2>
+
+            <p>
+              {{
+                formatearFecha(
+                  registroDetalle()!
+                    .fecha
+                )
+              }}
+            </p>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="close-button"
+            aria-label="Cerrar"
+            (click)="cerrarDetalle()">
+
+            ×
+
+          </button>
+
+        </div>
+
+
+        <div class="detail-summary">
+
+          <div>
+
+            <span>
+              Identificación
+            </span>
+
+            <strong>
+              {{
+                registroDetalle()!
+                  .identificacion
+              }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Área
+            </span>
+
+            <strong>
+              {{
+                registroDetalle()!
+                  .area ??
+                '-'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Jornada
+            </span>
+
+            <strong>
+              {{
+                registroDetalle()!
+                  .estadoJornada
+              }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Origen
+            </span>
+
+            <strong>
+              {{
+                registroDetalle()!
+                  .origen
+              }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="detail-list">
+
+          @for (
+            marcacion
+            of registroDetalle()!
+              .marcaciones;
+            track marcacion.idMarcacion
+          ) {
+
+            <article
+              class="detail-mark"
+              [class.cancelled]="
+                marcacion.estadoMarcacion ===
+                'Anulada'
+              ">
+
+              <div>
+
+                <span class="mark-type">
+
+                  {{
+                    nombreTipo(
+                      marcacion.tipoMarcacion
+                    )
+                  }}
+
+                </span>
+
+                <strong>
+                  {{
+                    formatearHora(
+                      marcacion.hora
+                    )
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-meta">
+
+                <span
+                  class="origin-badge"
+                  [class.facial]="
+                    marcacion.esFacial
+                  ">
+
+                  {{
+                    origenMarcacion(
+                      marcacion
+                    )
+                  }}
+
+                </span>
+
+
+                <span
+                  class="mark-state"
+                  [class.cancelled-state]="
+                    marcacion.estadoMarcacion ===
+                    'Anulada'
+                  ">
+
+                  {{
+                    marcacion.estadoMarcacion
+                  }}
+
+                </span>
+
+              </div>
+
+
+              @if (
+                marcacion.observacion
+              ) {
+
+                <p class="mark-observation">
+
+                  {{
+                    marcacion.observacion
+                  }}
+
+                </p>
+
+              }
+
+            </article>
+
+          }
+
+        </div>
+
+
+        <div class="modal-footer">
+
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="cerrarDetalle()">
+
+            Cerrar
+
+          </button>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  }
+
+</section>

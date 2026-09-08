@@ -6,8 +6,19 @@ import numpy as np
 
 class FaceService:
 
+    # =====================================================
+    # INSTANCIAS DE LOS MODELOS
+    #
+    # Se cargan una sola vez y se reutilizan.
+    # =====================================================
+
     _detector = None
     _recognizer = None
+
+
+    # =====================================================
+    # RUTAS DE MODELOS
+    # =====================================================
 
     _yunet_model_path = (
         Path(__file__).resolve().parents[2]
@@ -21,8 +32,15 @@ class FaceService:
         / "face_recognition_sface_2021dec.onnx"
     )
 
+
+    # =====================================================
+    # DECODIFICAR IMAGEN
+    # =====================================================
+
     @staticmethod
-    def decodificar_imagen(contenido: bytes):
+    def decodificar_imagen(
+        contenido: bytes
+    ):
         if not contenido:
             raise ValueError(
                 "La imagen está vacía."
@@ -45,65 +63,203 @@ class FaceService:
 
         return imagen
 
+
+    # =====================================================
+    # DIMENSIONES
+    # =====================================================
+
     @staticmethod
-    def obtener_dimensiones(imagen):
+    def obtener_dimensiones(
+        imagen
+    ):
         alto, ancho = imagen.shape[:2]
 
         return ancho, alto
 
-    @classmethod
-    def obtener_detector(cls):
 
+    # =====================================================
+    # OBTENER DETECTOR YUNET
+    # =====================================================
+
+    @classmethod
+    def obtener_detector(
+        cls
+    ):
         if cls._detector is not None:
             return cls._detector
 
         if not cls._yunet_model_path.exists():
             raise RuntimeError(
-                "No se encontró el modelo YuNet en: "
-                f"{cls._yunet_model_path}"
+                "No se encontró el modelo YuNet."
             )
 
-        cls._detector = cv2.FaceDetectorYN.create(
-            model=str(cls._yunet_model_path),
-            config="",
-            input_size=(320, 320),
-            score_threshold=0.8,
-            nms_threshold=0.3,
-            top_k=5000
-        )
+        if not cls._yunet_model_path.is_file():
+            raise RuntimeError(
+                "El modelo YuNet no corresponde a un archivo válido."
+            )
+
+        try:
+            cls._detector = cv2.FaceDetectorYN.create(
+                model=str(
+                    cls._yunet_model_path
+                ),
+                config="",
+                input_size=(
+                    320,
+                    320
+                ),
+                score_threshold=0.8,
+                nms_threshold=0.3,
+                top_k=5000
+            )
+
+        except Exception as exc:
+            cls._detector = None
+
+            raise RuntimeError(
+                "No fue posible inicializar el modelo YuNet."
+            ) from exc
+
+        if cls._detector is None:
+            raise RuntimeError(
+                "No fue posible inicializar el detector facial."
+            )
 
         return cls._detector
 
-    @classmethod
-    def obtener_reconocedor(cls):
 
+    # =====================================================
+    # OBTENER RECONOCEDOR SFACE
+    # =====================================================
+
+    @classmethod
+    def obtener_reconocedor(
+        cls
+    ):
         if cls._recognizer is not None:
             return cls._recognizer
 
         if not cls._sface_model_path.exists():
             raise RuntimeError(
-                "No se encontró el modelo SFace en: "
-                f"{cls._sface_model_path}"
+                "No se encontró el modelo SFace."
             )
 
-        cls._recognizer = (
-            cv2.FaceRecognizerSF.create(
-                str(cls._sface_model_path),
+        if not cls._sface_model_path.is_file():
+            raise RuntimeError(
+                "El modelo SFace no corresponde a un archivo válido."
+            )
+
+        try:
+            cls._recognizer = cv2.FaceRecognizerSF.create(
+                str(
+                    cls._sface_model_path
+                ),
                 ""
             )
-        )
+
+        except Exception as exc:
+            cls._recognizer = None
+
+            raise RuntimeError(
+                "No fue posible inicializar el modelo SFace."
+            ) from exc
+
+        if cls._recognizer is None:
+            raise RuntimeError(
+                "No fue posible inicializar el reconocedor facial."
+            )
 
         return cls._recognizer
 
-    @classmethod
-    def detectar_rostros(cls, imagen):
 
+    # =====================================================
+    # VERIFICAR DISPONIBILIDAD DE IA
+    #
+    # Utilizado por /health/ready.
+    #
+    # Comprueba independientemente:
+    # - archivo YuNet
+    # - inicialización YuNet
+    # - archivo SFace
+    # - inicialización SFace
+    # =====================================================
+
+    @classmethod
+    def verificar_disponibilidad(
+        cls
+    ):
+        estado = {
+            "disponible": False,
+            "yunet": False,
+            "sface": False
+        }
+
+        # =================================================
+        # YUNET
+        # =================================================
+
+        try:
+            if (
+                cls._yunet_model_path.exists()
+                and cls._yunet_model_path.is_file()
+            ):
+                detector = cls.obtener_detector()
+
+                estado["yunet"] = (
+                    detector is not None
+                )
+
+        except Exception:
+            estado["yunet"] = False
+
+        # =================================================
+        # SFACE
+        # =================================================
+
+        try:
+            if (
+                cls._sface_model_path.exists()
+                and cls._sface_model_path.is_file()
+            ):
+                recognizer = cls.obtener_reconocedor()
+
+                estado["sface"] = (
+                    recognizer is not None
+                )
+
+        except Exception:
+            estado["sface"] = False
+
+        # =================================================
+        # DISPONIBILIDAD GLOBAL
+        # =================================================
+
+        estado["disponible"] = (
+            estado["yunet"]
+            and estado["sface"]
+        )
+
+        return estado
+
+
+    # =====================================================
+    # DETECTAR ROSTROS
+    # =====================================================
+
+    @classmethod
+    def detectar_rostros(
+        cls,
+        imagen
+    ):
         detector = cls.obtener_detector()
 
         alto, ancho = imagen.shape[:2]
 
         detector.setInputSize(
-            (ancho, alto)
+            (
+                ancho,
+                alto
+            )
         )
 
         resultado = detector.detect(
@@ -119,10 +275,21 @@ class FaceService:
 
         for rostro in rostros:
 
-            x = int(rostro[0])
-            y = int(rostro[1])
-            ancho_rostro = int(rostro[2])
-            alto_rostro = int(rostro[3])
+            x = int(
+                rostro[0]
+            )
+
+            y = int(
+                rostro[1]
+            )
+
+            ancho_rostro = int(
+                rostro[2]
+            )
+
+            alto_rostro = int(
+                rostro[3]
+            )
 
             confianza = float(
                 rostro[14]
@@ -141,14 +308,20 @@ class FaceService:
 
         return encontrados
 
+
+    # =====================================================
+    # GENERAR EMBEDDING
+    # =====================================================
+
     @classmethod
     def generar_embedding(
         cls,
         imagen,
         datos_yunet
     ):
-
-        recognizer = cls.obtener_reconocedor()
+        recognizer = (
+            cls.obtener_reconocedor()
+        )
 
         rostro_alineado = (
             recognizer.alignCrop(
@@ -179,17 +352,28 @@ class FaceService:
 
         return embedding_normalizado
 
+
+    # =====================================================
+    # COMPARAR EMBEDDINGS
+    # =====================================================
+
     @staticmethod
     def comparar_embeddings(
         embedding_1,
         embedding_2
     ):
-        if embedding_1 is None or embedding_2 is None:
+        if (
+            embedding_1 is None
+            or embedding_2 is None
+        ):
             raise ValueError(
                 "Los embeddings no pueden ser nulos."
             )
 
-        if len(embedding_1) != len(embedding_2):
+        if (
+            len(embedding_1)
+            != len(embedding_2)
+        ):
             raise ValueError(
                 "Los embeddings tienen dimensiones diferentes."
             )
@@ -212,13 +396,21 @@ class FaceService:
             embedding_2
         )
 
-        if norma_1 == 0 or norma_2 == 0:
+        if (
+            norma_1 == 0
+            or norma_2 == 0
+        ):
             raise ValueError(
                 "Uno de los embeddings no es válido."
             )
 
-        embedding_1 = embedding_1 / norma_1
-        embedding_2 = embedding_2 / norma_2
+        embedding_1 = (
+            embedding_1 / norma_1
+        )
+
+        embedding_2 = (
+            embedding_2 / norma_2
+        )
 
         similitud = float(
             np.dot(
@@ -229,10 +421,19 @@ class FaceService:
 
         return similitud
 
-    @staticmethod
-    def promediar_embeddings(embeddings):
 
-        if embeddings is None or len(embeddings) == 0:
+    # =====================================================
+    # PROMEDIAR EMBEDDINGS
+    # =====================================================
+
+    @staticmethod
+    def promediar_embeddings(
+        embeddings
+    ):
+        if (
+            embeddings is None
+            or len(embeddings) == 0
+        ):
             raise ValueError(
                 "Debe existir al menos un embedding."
             )
@@ -250,7 +451,8 @@ class FaceService:
 
         dimensiones = {
             len(embedding)
-            for embedding in embeddings
+            for embedding
+            in embeddings
         }
 
         if len(dimensiones) != 1:

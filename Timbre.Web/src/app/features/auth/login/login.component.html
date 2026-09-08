@@ -1,144 +1,344 @@
 <div class="login-page">
 
-  <section class="login-panel">
-
-    <!-- =========================================
-         IDENTIDAD / PRESENTACIÓN
-    ========================================== -->
-    <div class="brand-section">
-
-      <div class="brand-badge">
-        CA
-      </div>
-
-      <h1>
-        Control de Asistencia
-      </h1>
-
-      <p>
-        Administración y registro de asistencia
-        mediante reconocimiento facial.
-      </p>
-
-    </div>
+  <div class="login-shell">
 
 
-    <!-- =========================================
-         FORMULARIO DE LOGIN
-    ========================================== -->
-    <div class="login-card">
+    <!-- =================================================
+         PANEL INSTITUCIONAL
+    ================================================== -->
 
-      <div class="login-header">
+    <section class="brand-panel">
 
-        <span class="eyebrow">
-          ACCESO AL SISTEMA
+      <div class="brand-content">
+
+        <div class="brand-logo">
+          CA
+        </div>
+
+
+        <span class="brand-eyebrow">
+          SISTEMA DE ASISTENCIA
         </span>
 
-        <h2>
-          Bienvenido
-        </h2>
+
+        <h1>
+          Control de Asistencia
+        </h1>
+
 
         <p>
-          Ingrese sus credenciales para continuar.
+          Gestión de asistencia y registro
+          mediante reconocimiento facial.
         </p>
+
+
+        <div class="brand-feature">
+
+          <span class="feature-icon">
+            ✓
+          </span>
+
+          <span>
+            Registro facial rápido y seguro
+          </span>
+
+        </div>
+
+
+        <div class="brand-feature">
+
+          <span class="feature-icon">
+            ✓
+          </span>
+
+          <span>
+            Control de jornadas y marcaciones
+          </span>
+
+        </div>
+
+
+        <div class="brand-feature">
+
+          <span class="feature-icon">
+            ✓
+          </span>
+
+          <span>
+            Consulta y administración por roles
+          </span>
+
+        </div>
 
       </div>
 
 
-      <form
-        (ngSubmit)="ingresar()"
-        #loginForm="ngForm"
-        novalidate>
+      <div class="brand-footer">
 
-        <!-- =====================================
-             USUARIO
-        ====================================== -->
-        <div class="form-group">
+        <span>
+          Control de Asistencia
+        </span>
 
-          <label for="usuario">
-            Usuario
-          </label>
+      </div>
 
-          <input
-            id="usuario"
-            name="usuario"
-            type="text"
-            [(ngModel)]="nombreUsuario"
-            autocomplete="username"
-            placeholder="Ingrese su usuario"
-            [disabled]="cargando"
-            required>
-
-        </div>
+    </section>
 
 
-        <!-- =====================================
-             CONTRASEÑA
-        ====================================== -->
-        <div class="form-group">
+    <!-- =================================================
+         PANEL LOGIN
+    ================================================== -->
 
-          <label for="password">
-            Contraseña
-          </label>
+    <section class="form-panel">
 
-          <input
-            id="password"
-            name="password"
-            type="password"
-            [(ngModel)]="password"
-            autocomplete="current-password"
-            placeholder="Ingrese su contraseña"
-            [disabled]="cargando"
-            required>
+      <div class="form-container">
+
+
+        <!-- ===============================================
+             CABECERA
+        ================================================ -->
+
+        <div class="login-header">
+
+          <span class="eyebrow">
+            ACCESO AL SISTEMA
+          </span>
+
+
+          <h2>
+            Bienvenido
+          </h2>
+
+
+          <p>
+            Ingrese sus credenciales para continuar.
+          </p>
 
         </div>
 
 
-        <!-- =====================================
-             ERROR INLINE
-        ====================================== -->
-        @if (mensajeError) {
+        <!-- ===============================================
+             FORMULARIO
+        ================================================ -->
 
-          <div
-            class="form-error"
-            role="alert">
+        <form
+          (ngSubmit)="ingresar()"
+          #loginForm="ngForm"
+          novalidate>
 
-            {{ mensajeError }}
+
+          <!-- =============================================
+               USUARIO
+          ============================================== -->
+
+          <div class="form-group">
+
+            <label for="usuario">
+              Usuario
+            </label>
+
+
+            <div
+              class="input-wrapper"
+              [class.invalid]="
+                intentoEnviar() &&
+                !nombreUsuario.trim()
+              ">
+
+              <span class="input-icon">
+                @
+              </span>
+
+
+              <input
+                id="usuario"
+                name="usuario"
+                type="text"
+                [(ngModel)]="nombreUsuario"
+                (ngModelChange)="limpiarError()"
+                autocomplete="username"
+                placeholder="Ingrese su usuario"
+                [disabled]="cargando()"
+                required
+                autofocus>
+
+            </div>
+
+
+            @if (
+              intentoEnviar() &&
+              !nombreUsuario.trim()
+            ) {
+
+              <span class="field-error">
+                El usuario es obligatorio.
+              </span>
+
+            }
 
           </div>
 
-        }
+
+          <!-- =============================================
+               CONTRASEÑA
+          ============================================== -->
+
+          <div class="form-group">
+
+            <label for="password">
+              Contraseña
+            </label>
 
 
-        <!-- =====================================
-             BOTÓN
-        ====================================== -->
-        <button
-          class="btn-primary"
-          type="submit"
-          [disabled]="cargando">
+            <div
+              class="input-wrapper"
+              [class.invalid]="
+                intentoEnviar() &&
+                !password
+              ">
 
-          @if (cargando) {
+              <span class="input-icon password-symbol">
+                •
+              </span>
 
-            <span>
-              Ingresando...
-            </span>
+
+              <input
+                id="password"
+                name="password"
+                [type]="
+                  mostrarPassword()
+                    ? 'text'
+                    : 'password'
+                "
+                [(ngModel)]="password"
+                (ngModelChange)="limpiarError()"
+                autocomplete="current-password"
+                placeholder="Ingrese su contraseña"
+                [disabled]="cargando()"
+                required>
+
+
+              <button
+                type="button"
+                class="password-toggle"
+                [disabled]="cargando()"
+                [attr.aria-label]="
+                  mostrarPassword()
+                    ? 'Ocultar contraseña'
+                    : 'Mostrar contraseña'
+                "
+                (click)="alternarPassword()">
+
+                {{
+                  mostrarPassword()
+                    ? 'Ocultar'
+                    : 'Mostrar'
+                }}
+
+              </button>
+
+            </div>
+
+
+            @if (
+              intentoEnviar() &&
+              !password
+            ) {
+
+              <span class="field-error">
+                La contraseña es obligatoria.
+              </span>
+
+            }
+
+          </div>
+
+
+          <!-- =============================================
+               ERROR LOGIN
+          ============================================== -->
+
+          @if (
+            mensajeError()
+          ) {
+
+            <div
+              class="form-error"
+              role="alert">
+
+              <span class="form-error-icon">
+                !
+              </span>
+
+
+              <span>
+                {{ mensajeError() }}
+              </span>
+
+            </div>
 
           }
-          @else {
+
+
+          <!-- =============================================
+               BOTÓN
+          ============================================== -->
+
+          <button
+            class="btn-primary"
+            type="submit"
+            [disabled]="cargando()">
+
+            @if (
+              cargando()
+            ) {
+
+              <span class="button-content">
+
+                <span class="button-spinner">
+                </span>
+
+                Ingresando...
+
+              </span>
+
+            }
+            @else {
+
+              <span>
+                Ingresar
+              </span>
+
+            }
+
+          </button>
+
+        </form>
+
+
+        <!-- ===============================================
+             VOLVER AL KIOSKO
+        ================================================ -->
+
+        <div class="back-section">
+
+          <a
+            routerLink="/"
+            class="back-link">
 
             <span>
-              Ingresar
+              ←
             </span>
 
-          }
+            Volver a marcar asistencia
 
-        </button>
+          </a>
 
-      </form>
+        </div>
 
-    </div>
+      </div>
 
-  </section>
+    </section>
+
+  </div>
 
 </div>

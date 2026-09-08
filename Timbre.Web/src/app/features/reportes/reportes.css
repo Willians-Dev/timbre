@@ -1,0 +1,678 @@
+:host {
+  display: block;
+}
+
+
+.page {
+  padding: 0;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.page-header {
+  margin-bottom: 20px;
+}
+
+
+.eyebrow,
+.section-label {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #214796;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: .08em;
+}
+
+
+.page-header h1 {
+  margin: 0 0 5px;
+
+  color: #172033;
+
+  font-size: 27px;
+}
+
+
+.page-header p {
+  margin: 0;
+
+  color: #667085;
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   TARJETAS DE REPORTE
+========================================================= */
+
+.report-types {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap: 10px;
+
+  margin-bottom: 14px;
+}
+
+
+.report-card {
+  min-height: 80px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 13px;
+
+  border: 1px solid #e4e7ec;
+
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    border-color .15s ease,
+    background .15s ease,
+    box-shadow .15s ease,
+    transform .15s ease;
+}
+
+
+.report-card:hover:not(:disabled) {
+  border-color: #b8c6e3;
+
+  background: #fafcff;
+
+  transform:
+    translateY(-1px);
+}
+
+
+.report-card.active {
+  border-color: #214796;
+
+  background: #f5f8ff;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(33, 71, 150, .06);
+}
+
+
+.report-card:disabled {
+  cursor: not-allowed;
+
+  opacity: .65;
+}
+
+
+.report-icon {
+  width: 36px;
+  height: 36px;
+
+  flex: 0 0 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+
+  background: #eef4ff;
+
+  color: #214796;
+
+  font-size: 15px;
+  font-weight: 800;
+}
+
+
+.report-card.active .report-icon {
+  background: #214796;
+
+  color: #ffffff;
+}
+
+
+.report-content {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+
+.report-content strong {
+  color: #172033;
+
+  font-size: 10px;
+}
+
+
+.report-content small {
+  color: #667085;
+
+  font-size: 8px;
+
+  line-height: 1.45;
+}
+
+
+/* =========================================================
+   CUERPO
+========================================================= */
+
+.content-grid {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    280px;
+
+  gap: 14px;
+
+  align-items: start;
+}
+
+
+.filters-card,
+.summary-card {
+  border: 1px solid #e4e7ec;
+
+  border-radius: 10px;
+
+  background: #ffffff;
+}
+
+
+/* =========================================================
+   FILTROS
+========================================================= */
+
+.filters-card {
+  padding: 18px;
+}
+
+
+.section-heading {
+  margin-bottom: 18px;
+}
+
+
+.section-heading h2 {
+  margin: 0 0 5px;
+
+  color: #172033;
+
+  font-size: 15px;
+}
+
+
+.section-heading p {
+  max-width: 650px;
+
+  margin: 0;
+
+  color: #667085;
+
+  font-size: 9px;
+
+  line-height: 1.55;
+}
+
+
+.filters-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 13px;
+}
+
+
+.field {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+
+.field label {
+  color: #475467;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+
+.field input,
+.field select {
+  width: 100%;
+  height: 38px;
+
+  box-sizing: border-box;
+
+  padding: 0 9px;
+
+  border: 1px solid #d0d5dd;
+
+  border-radius: 6px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #344054;
+
+  font-family: inherit;
+
+  font-size: 10px;
+}
+
+
+.field input:focus,
+.field select:focus {
+  border-color: #214796;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(33, 71, 150, .07);
+}
+
+
+.field input:disabled,
+.field select:disabled {
+  background: #f9fafb;
+
+  color: #98a2b3;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   ACCIONES
+========================================================= */
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 18px;
+  padding-top: 15px;
+
+  border-top: 1px solid #f0f2f5;
+}
+
+
+.btn-primary,
+.btn-secondary,
+.btn-pdf {
+  min-height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 0 16px;
+
+  border-radius: 6px;
+
+  font-family: inherit;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background .15s ease,
+    border-color .15s ease;
+}
+
+
+.btn-primary {
+  min-width: 105px;
+
+  border: 1px solid #214796;
+
+  background: #214796;
+
+  color: #ffffff;
+}
+
+
+.btn-primary:hover:not(:disabled) {
+  background: #193a7a;
+
+  border-color: #193a7a;
+}
+
+
+.btn-pdf {
+  min-width: 105px;
+
+  border: 1px solid #b42318;
+
+  background: #ffffff;
+
+  color: #b42318;
+}
+
+
+.btn-pdf:hover:not(:disabled) {
+  background: #fef3f2;
+}
+
+
+.btn-secondary {
+  border: 1px solid #d0d5dd;
+
+  background: #ffffff;
+
+  color: #475467;
+}
+
+
+.btn-secondary:hover:not(:disabled) {
+  background: #f9fafb;
+}
+
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-pdf:disabled {
+  opacity: .55;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   SPINNER
+========================================================= */
+
+.spinner {
+  width: 11px;
+  height: 11px;
+
+  box-sizing: border-box;
+
+  border: 2px solid
+    rgba(180, 35, 24, .25);
+
+  border-top-color:
+    #b42318;
+
+  border-radius: 50%;
+
+  animation:
+    spin .7s linear infinite;
+}
+
+
+.spinner.light {
+  border-color:
+    rgba(255, 255, 255, .35);
+
+  border-top-color:
+    #ffffff;
+}
+
+
+@keyframes spin {
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+
+}
+
+
+/* =========================================================
+   RESUMEN
+========================================================= */
+
+.summary-card {
+  padding: 17px;
+}
+
+
+.summary-format {
+  display: flex;
+
+  gap: 6px;
+
+  margin-bottom: 15px;
+}
+
+
+.format-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 42px;
+  height: 27px;
+
+  padding: 0 7px;
+
+  border-radius: 6px;
+
+  font-size: 8px;
+  font-weight: 900;
+
+  letter-spacing: .03em;
+}
+
+
+.format-chip.excel {
+  background: #ecfdf3;
+
+  color: #087443;
+}
+
+
+.format-chip.pdf {
+  background: #fef3f2;
+
+  color: #b42318;
+}
+
+
+.summary-card h3 {
+  margin: 0 0 5px;
+
+  color: #172033;
+
+  font-size: 13px;
+}
+
+
+.summary-card > p {
+  margin: 0 0 16px;
+
+  color: #667085;
+
+  font-size: 9px;
+
+  line-height: 1.5;
+}
+
+
+.summary-row {
+  min-height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  border-bottom: 1px solid #f0f2f5;
+}
+
+
+.summary-row span {
+  flex: 0 0 auto;
+
+  color: #667085;
+
+  font-size: 8px;
+}
+
+
+.summary-row strong {
+  min-width: 0;
+
+  overflow: hidden;
+
+  color: #344054;
+
+  font-size: 8px;
+
+  text-align: right;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.summary-note {
+  margin-top: 14px;
+
+  padding: 11px;
+
+  border: 1px solid #e4eaff;
+
+  border-radius: 7px;
+
+  background: #f5f8ff;
+}
+
+
+.summary-note strong {
+  display: block;
+
+  margin-bottom: 4px;
+
+  color: #214796;
+
+  font-size: 8px;
+}
+
+
+.summary-note p {
+  margin: 0;
+
+  color: #667085;
+
+  font-size: 8px;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (
+  max-width: 1200px
+) {
+
+  .report-types {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+}
+
+
+@media (
+  max-width: 900px
+) {
+
+  .content-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .summary-card {
+    order: -1;
+  }
+
+}
+
+
+@media (
+  max-width: 650px
+) {
+
+  .report-types,
+  .filters-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .filter-actions {
+    display: grid;
+
+    grid-template-columns:
+      1fr
+      1fr;
+  }
+
+
+  .btn-secondary {
+    grid-column:
+      1 / -1;
+  }
+
+
+  .btn-primary,
+  .btn-pdf {
+    width: 100%;
+  }
+
+}

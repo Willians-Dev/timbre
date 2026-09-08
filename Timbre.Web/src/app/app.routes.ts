@@ -16,8 +16,8 @@ export const routes: Routes = [
   // =====================================================
   // KIOSKO / PANTALLA PÚBLICA
   //
-  // Es la página principal del sistema.
-  // No requiere login humano.
+  // Página principal del sistema.
+  // No requiere autenticación humana.
   // =====================================================
 
   {
@@ -57,9 +57,13 @@ export const routes: Routes = [
 
 
   // =====================================================
-  // MI ASISTENCIA
+  // MI ASISTENCIA - EMPLEADO
   //
-  // Pantalla personal de cualquier usuario humano.
+  // Ruta personal para el rol Empleado.
+  // No utiliza el layout administrativo.
+  //
+  // URL:
+  // /mi-asistencia
   // =====================================================
 
   {
@@ -72,8 +76,6 @@ export const routes: Routes = [
 
     data: {
       roles: [
-        'Administrador',
-        'RRHH',
         'Empleado'
       ]
     },
@@ -92,6 +94,11 @@ export const routes: Routes = [
 
   // =====================================================
   // ÁREA ADMINISTRATIVA
+  //
+  // Utiliza AdminLayout:
+  // - sidebar
+  // - topbar
+  // - router-outlet
   // =====================================================
 
   {
@@ -115,6 +122,8 @@ export const routes: Routes = [
 
       // =================================================
       // /admin
+      //
+      // Redirección inicial.
       // =================================================
 
       {
@@ -128,7 +137,11 @@ export const routes: Routes = [
 
       // =================================================
       // DASHBOARD
+      //
       // Administrador / RRHH
+      //
+      // URL:
+      // /admin/dashboard
       // =================================================
 
       {
@@ -159,7 +172,11 @@ export const routes: Routes = [
 
       // =================================================
       // EMPLEADOS
+      //
       // Administrador / RRHH
+      //
+      // URL:
+      // /admin/empleados
       // =================================================
 
       {
@@ -190,7 +207,11 @@ export const routes: Routes = [
 
       // =================================================
       // JORNADAS
+      //
       // Administrador / RRHH
+      //
+      // URL:
+      // /admin/jornadas
       // =================================================
 
       {
@@ -221,7 +242,11 @@ export const routes: Routes = [
 
       // =================================================
       // MARCACIONES
+      //
       // Administrador / RRHH
+      //
+      // URL:
+      // /admin/marcaciones
       // =================================================
 
       {
@@ -251,8 +276,120 @@ export const routes: Routes = [
 
 
       // =================================================
+      // HISTORIAL ADMINISTRATIVO
+      //
+      // Administrador / RRHH
+      //
+      // URL:
+      // /admin/historial
+      // =================================================
+
+      {
+        path: 'historial',
+
+        canActivate: [
+          roleGuard
+        ],
+
+        data: {
+          roles: [
+            'Administrador',
+            'RRHH'
+          ]
+        },
+
+        loadComponent:
+          () =>
+            import(
+              './features/historial/historial'
+            )
+              .then(
+                m =>
+                  m.Historial
+              )
+      },
+
+
+      // =================================================
+      // REPORTES
+      //
+      // Administrador / RRHH
+      //
+      // URL:
+      // /admin/reportes
+      // =================================================
+
+      {
+        path: 'reportes',
+
+        canActivate: [
+          roleGuard
+        ],
+
+        data: {
+          roles: [
+            'Administrador',
+            'RRHH'
+          ]
+        },
+
+        loadComponent:
+          () =>
+            import(
+              './features/reportes/reportes'
+            )
+              .then(
+                m =>
+                  m.Reportes
+              )
+      },
+
+
+      // =================================================
+      // MI ASISTENCIA
+      //
+      // Administrador / RRHH.
+      //
+      // Utiliza el mismo componente personal,
+      // pero dentro de AdminLayout.
+      //
+      // URL:
+      // /admin/mi-asistencia
+      // =================================================
+
+      {
+        path: 'mi-asistencia',
+
+        canActivate: [
+          roleGuard
+        ],
+
+        data: {
+          roles: [
+            'Administrador',
+            'RRHH'
+          ]
+        },
+
+        loadComponent:
+          () =>
+            import(
+              './features/mi-asistencia/mi-asistencia'
+            )
+              .then(
+                m =>
+                  m.MiAsistencia
+              )
+      },
+
+
+      // =================================================
       // USUARIOS
+      //
       // Solo Administrador
+      //
+      // URL:
+      // /admin/usuarios
       // =================================================
 
       {
@@ -282,7 +419,11 @@ export const routes: Routes = [
 
       // =================================================
       // AUDITORÍA
+      //
       // Solo Administrador
+      //
+      // URL:
+      // /admin/auditoria
       // =================================================
 
       {
@@ -309,20 +450,14 @@ export const routes: Routes = [
               )
       }
 
-      /*
-       * HISTORIAL y REPORTES se agregarán
-       * cuando creemos esos componentes.
-       *
-       * No los ponemos todavía para evitar
-       * imports a archivos inexistentes.
-       */
-
     ]
   },
 
 
   // =====================================================
-  // CUALQUIER RUTA DESCONOCIDA
+  // RUTA DESCONOCIDA
+  //
+  // Cualquier URL inexistente regresa al kiosko.
   // =====================================================
 
   {

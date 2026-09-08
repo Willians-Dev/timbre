@@ -91,7 +91,8 @@ export class NotificationService {
     duration: number
   ): void {
 
-    const id = ++this.sequence;
+    const id =
+      ++this.sequence;
 
     const notification: AppNotification = {
       id,
@@ -109,7 +110,8 @@ export class NotificationService {
     );
 
     window.setTimeout(
-      () => this.remove(id),
+      () =>
+        this.remove(id),
       duration
     );
   }

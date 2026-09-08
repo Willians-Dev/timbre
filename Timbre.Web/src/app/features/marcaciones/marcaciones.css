@@ -68,7 +68,7 @@
 
   grid-template-columns:
     repeat(
-      4,
+      5,
       minmax(0, 1fr)
     );
 
@@ -921,6 +921,300 @@ button:disabled {
 
   .modal-backdrop {
     padding: 12px;
+  }
+
+}
+
+/* =========================================================
+   ACCIONES HEADER
+========================================================= */
+
+.header-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+
+/* =========================================================
+   ACCIONES FILA
+========================================================= */
+
+.row-actions {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  white-space: nowrap;
+}
+
+
+.action-column {
+  width: 210px;
+}
+
+
+.action-button-regularize {
+  border-color: #b2ccff;
+
+  background: #eff8ff;
+
+  color: #1849a9;
+}
+
+
+.action-button-regularize:hover {
+  border-color: #84adff;
+
+  background: #dfeaff;
+
+  box-shadow:
+    0 3px 8px
+    rgba(33, 71, 150, 0.10);
+
+  transform:
+    translateY(-1px);
+}
+
+
+.action-button-regularize:active {
+  transform:
+    translateY(0);
+}
+
+
+/* =========================================================
+   ORIGEN REGULARIZACIÓN
+========================================================= */
+
+.origin.regularizacion {
+  background: #f4f3ff;
+
+  color: #5925dc;
+}
+
+
+/* =========================================================
+   REGULARIZACIÓN
+========================================================= */
+
+.regularization-info {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 12px;
+
+  padding: 13px;
+
+  border:
+    1px solid #b2ccff;
+
+  border-radius: 8px;
+
+  background: #eff8ff;
+}
+
+
+.regularization-icon {
+  width: 28px;
+  height: 28px;
+
+  min-width: 28px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #d1e9ff;
+
+  color: #1849a9;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+
+.regularization-info > div:last-child {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+
+.regularization-info strong {
+  color: #1849a9;
+
+  font-size: 11px;
+}
+
+
+.regularization-info span {
+  color: #175cd3;
+
+  font-size: 10px;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   MARCACIONES FALTANTES
+========================================================= */
+
+.missing-box {
+  padding: 12px;
+
+  border:
+    1px solid #e4e7ec;
+
+  border-radius: 8px;
+
+  background: #f9fafb;
+}
+
+
+.missing-box > span {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #475467;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: .04em;
+}
+
+
+.missing-list {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 6px;
+}
+
+
+.missing-chip {
+  display: inline-flex;
+
+  align-items: center;
+
+  min-height: 25px;
+
+  padding:
+    0 9px;
+
+  border:
+    1px solid #b2ccff;
+
+  border-radius: 999px;
+
+  background: #eff8ff;
+
+  color: #1849a9;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+
+.complete-box {
+  padding: 12px;
+
+  border:
+    1px solid #abefc6;
+
+  border-radius: 8px;
+
+  background: #ecfdf3;
+
+  color: #067647;
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+
+.field-help {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #667085;
+
+  font-size: 9px;
+
+  line-height: 1.45;
+}
+
+
+.regularization-grid {
+  grid-template-columns:
+    150px
+    minmax(180px, 1fr)
+    150px;
+}
+
+
+/* =========================================================
+   RESPONSIVE REGULARIZACIÓN
+========================================================= */
+
+@media (max-width: 1300px) {
+
+  .summary-grid {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
+  }
+
+}
+
+
+@media (max-width: 800px) {
+
+  .header-actions {
+    width: 100%;
+
+    flex-direction: column;
+  }
+
+
+  .header-actions button {
+    width: 100%;
+  }
+
+
+  .regularization-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .row-actions {
+    flex-direction: column;
+  }
+
+
+  .action-column {
+    width: 120px;
   }
 
 }

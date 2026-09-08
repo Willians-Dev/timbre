@@ -1,39 +1,72 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
 using Timbre.Api.Data;
 using Timbre.Api.DTOs.Usuarios;
 using Timbre.Api.Models;
 using Timbre.Api.Services;
 
+
 namespace Timbre.Api.Controllers;
+
 
 [Authorize(Roles = "Administrador")]
 [ApiController]
 [Route("api/[controller]")]
 public class UsuariosController : ControllerBase
 {
-    private readonly TimbreDbContext _context;
-    private readonly PasswordService _passwordService;
-    private readonly FechaHoraService _fechaHoraService;
-    private readonly AuditoriaService _auditoriaService;
+    private readonly TimbreDbContext
+        _context;
+
+    private readonly PasswordService
+        _passwordService;
+
+    private readonly FechaHoraService
+        _fechaHoraService;
+
+    private readonly AuditoriaService
+        _auditoriaService;
+
+    private readonly UsernameService
+        _usernameService;
+
+    private readonly ILogger<UsuariosController>
+        _logger;
+
 
     public UsuariosController(
         TimbreDbContext context,
         PasswordService passwordService,
         FechaHoraService fechaHoraService,
-        AuditoriaService auditoriaService)
+        AuditoriaService auditoriaService,
+        UsernameService usernameService,
+        ILogger<UsuariosController> logger)
     {
-        _context = context;
-        _passwordService = passwordService;
-        _fechaHoraService = fechaHoraService;
-        _auditoriaService = auditoriaService;
+        _context =
+            context;
+
+        _passwordService =
+            passwordService;
+
+        _fechaHoraService =
+            fechaHoraService;
+
+        _auditoriaService =
+            auditoriaService;
+
+        _usernameService =
+            usernameService;
+
+        _logger =
+            logger;
     }
 
 
     // =====================================================
     // GET: api/usuarios
     // =====================================================
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<UsuarioDto>>>
         GetUsuarios(
@@ -77,6 +110,7 @@ public class UsuariosController : ControllerBase
                     cancellationToken
                 );
 
+
         return Ok(
             usuarios
         );
@@ -86,6 +120,7 @@ public class UsuariosController : ControllerBase
     // =====================================================
     // GET: api/usuarios/1
     // =====================================================
+
     [HttpGet("{id:long}")]
     public async Task<ActionResult<UsuarioDto>>
         GetUsuario(
@@ -130,6 +165,7 @@ public class UsuariosController : ControllerBase
                     cancellationToken
                 );
 
+
         if (usuario is null)
         {
             return NotFound(new
@@ -139,6 +175,7 @@ public class UsuariosController : ControllerBase
             });
         }
 
+
         return Ok(
             usuario
         );
@@ -147,9 +184,8 @@ public class UsuariosController : ControllerBase
 
     // =====================================================
     // GET: api/usuarios/catalogos/roles
-    //
-    // Roles activos disponibles para asignación.
     // =====================================================
+
     [HttpGet("catalogos/roles")]
     public async Task<ActionResult>
         GetRoles(
@@ -162,20 +198,22 @@ public class UsuariosController : ControllerBase
                     r.Activo)
                 .OrderBy(r =>
                     r.Nombre)
-                .Select(r => new
-                {
-                    idRol =
-                        r.IdRol,
+                .Select(r =>
+                    new
+                    {
+                        idRol =
+                            r.IdRol,
 
-                    nombre =
-                        r.Nombre,
+                        nombre =
+                            r.Nombre,
 
-                    descripcion =
-                        r.Descripcion
-                })
+                        descripcion =
+                            r.Descripcion
+                    })
                 .ToListAsync(
                     cancellationToken
                 );
+
 
         return Ok(
             roles
@@ -186,14 +224,8 @@ public class UsuariosController : ControllerBase
     // =====================================================
     // GET:
     // api/usuarios/catalogos/empleados-disponibles
-    //
-    // Solo:
-    // - empleados activos
-    // - sin usuario asignado
-    //
-    // idUsuarioActual permite incluir el empleado del
-    // propio usuario cuando se encuentra editando.
     // =====================================================
+
     [HttpGet("catalogos/empleados-disponibles")]
     public async Task<ActionResult>
         GetEmpleadosDisponibles(
@@ -203,6 +235,7 @@ public class UsuariosController : ControllerBase
     {
         long? idEmpleadoActual =
             null;
+
 
         if (idUsuarioActual.HasValue)
         {
@@ -218,6 +251,7 @@ public class UsuariosController : ControllerBase
                         cancellationToken
                     );
         }
+
 
         var empleados =
             await _context.Empleado
@@ -237,28 +271,30 @@ public class UsuariosController : ControllerBase
                     e.Apellidos)
                 .ThenBy(e =>
                     e.Nombres)
-                .Select(e => new
-                {
-                    idEmpleado =
-                        e.IdEmpleado,
+                .Select(e =>
+                    new
+                    {
+                        idEmpleado =
+                            e.IdEmpleado,
 
-                    identificacion =
-                        e.Identificacion,
+                        identificacion =
+                            e.Identificacion,
 
-                    nombreCompleto =
-                        e.Nombres +
-                        " " +
-                        e.Apellidos,
+                        nombreCompleto =
+                            e.Nombres +
+                            " " +
+                            e.Apellidos,
 
-                    area =
-                        e.Area,
+                        area =
+                            e.Area,
 
-                    cargo =
-                        e.Cargo
-                })
+                        cargo =
+                            e.Cargo
+                    })
                 .ToListAsync(
                     cancellationToken
                 );
+
 
         return Ok(
             empleados
@@ -269,6 +305,7 @@ public class UsuariosController : ControllerBase
     // =====================================================
     // POST: api/usuarios
     // =====================================================
+
     [HttpPost]
     public async Task<ActionResult>
         CrearUsuario(
@@ -277,15 +314,39 @@ public class UsuariosController : ControllerBase
             CancellationToken cancellationToken)
     {
         // =================================================
-        // VALIDAR NOMBRE
+        // VALIDAR DTO
         // =================================================
-        if (string.IsNullOrWhiteSpace(
-            dto.NombreUsuario))
+
+        if (dto is null)
         {
             return BadRequest(new
             {
                 mensaje =
-                    "El nombre de usuario es obligatorio."
+                    "La solicitud es inválida."
+            });
+        }
+
+
+        // =================================================
+        // NORMALIZAR / VALIDAR NOMBRE
+        // =================================================
+
+        string nombreUsuario;
+
+        try
+        {
+            nombreUsuario =
+                _usernameService
+                    .Normalizar(
+                        dto.NombreUsuario
+                    );
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new
+            {
+                mensaje =
+                    ex.Message
             });
         }
 
@@ -293,8 +354,12 @@ public class UsuariosController : ControllerBase
         // =================================================
         // VALIDAR CONTRASEÑA
         // =================================================
-        if (string.IsNullOrWhiteSpace(
-            dto.Password))
+
+        if (
+            string.IsNullOrWhiteSpace(
+                dto.Password
+            )
+        )
         {
             return BadRequest(new
             {
@@ -303,7 +368,11 @@ public class UsuariosController : ControllerBase
             });
         }
 
-        if (dto.Password.Length < 8)
+
+        if (
+            dto.Password.Length <
+            8
+        )
         {
             return BadRequest(new
             {
@@ -316,6 +385,7 @@ public class UsuariosController : ControllerBase
         // =================================================
         // VALIDAR EMPLEADO
         // =================================================
+
         var empleado =
             await _context.Empleado
                 .AsNoTracking()
@@ -326,6 +396,7 @@ public class UsuariosController : ControllerBase
                     cancellationToken
                 );
 
+
         if (empleado is null)
         {
             return BadRequest(new
@@ -334,6 +405,7 @@ public class UsuariosController : ControllerBase
                     "El empleado no existe."
             });
         }
+
 
         if (!empleado.Activo)
         {
@@ -348,6 +420,7 @@ public class UsuariosController : ControllerBase
         // =================================================
         // VALIDAR ROL
         // =================================================
+
         var rol =
             await _context.Rol
                 .AsNoTracking()
@@ -358,6 +431,7 @@ public class UsuariosController : ControllerBase
                         r.Activo,
                     cancellationToken
                 );
+
 
         if (rol is null)
         {
@@ -372,6 +446,7 @@ public class UsuariosController : ControllerBase
         // =================================================
         // UN USUARIO POR EMPLEADO
         // =================================================
+
         var usuarioEmpleadoExiste =
             await _context.Usuario
                 .AsNoTracking()
@@ -381,6 +456,7 @@ public class UsuariosController : ControllerBase
                         dto.IdEmpleado,
                     cancellationToken
                 );
+
 
         if (usuarioEmpleadoExiste)
         {
@@ -395,10 +471,6 @@ public class UsuariosController : ControllerBase
         // =================================================
         // NOMBRE DE USUARIO ÚNICO
         // =================================================
-        var nombreUsuario =
-            dto.NombreUsuario
-                .Trim()
-                .ToLowerInvariant();
 
         var nombreExiste =
             await _context.Usuario
@@ -409,6 +481,7 @@ public class UsuariosController : ControllerBase
                         nombreUsuario,
                     cancellationToken
                 );
+
 
         if (nombreExiste)
         {
@@ -423,6 +496,7 @@ public class UsuariosController : ControllerBase
         // =================================================
         // CREAR
         // =================================================
+
         var usuario =
             new Usuario
             {
@@ -449,29 +523,38 @@ public class UsuariosController : ControllerBase
                         .AhoraEcuador()
             };
 
+
         _context.Usuario.Add(
             usuario
         );
 
-        await _context.SaveChangesAsync(
-            cancellationToken
-        );
+
+        await _context
+            .SaveChangesAsync(
+                cancellationToken
+            );
 
 
         // =================================================
         // AUDITORÍA
         // =================================================
+
         await _auditoriaService
             .RegistrarAsync(
                 User,
+
                 accion:
                     "CREAR_USUARIO",
+
                 entidad:
                     "Usuario",
+
                 idEntidad:
                     usuario.IdUsuario,
+
                 valorAnterior:
                     null,
+
                 valorNuevo:
                     new
                     {
@@ -481,12 +564,20 @@ public class UsuariosController : ControllerBase
                         usuario.NombreUsuario,
                         usuario.Activo
                     },
+
                 ipOrigen:
                     HttpContext
                         .Connection
                         .RemoteIpAddress?
                         .ToString()
             );
+
+
+        _logger.LogInformation(
+            "Usuario {IdUsuario} creado correctamente.",
+            usuario.IdUsuario
+        );
+
 
         return Ok(new
         {
@@ -502,6 +593,7 @@ public class UsuariosController : ControllerBase
     // =====================================================
     // PUT: api/usuarios/1
     // =====================================================
+
     [HttpPut("{id:long}")]
     public async Task<ActionResult>
         ActualizarUsuario(
@@ -510,6 +602,16 @@ public class UsuariosController : ControllerBase
             ActualizarUsuarioDto dto,
             CancellationToken cancellationToken)
     {
+        if (dto is null)
+        {
+            return BadRequest(new
+            {
+                mensaje =
+                    "La solicitud es inválida."
+            });
+        }
+
+
         var usuario =
             await _context.Usuario
                 .FirstOrDefaultAsync(
@@ -517,6 +619,7 @@ public class UsuariosController : ControllerBase
                         u.IdUsuario == id,
                     cancellationToken
                 );
+
 
         if (usuario is null)
         {
@@ -528,13 +631,26 @@ public class UsuariosController : ControllerBase
         }
 
 
-        if (string.IsNullOrWhiteSpace(
-            dto.NombreUsuario))
+        // =================================================
+        // NORMALIZAR / VALIDAR NOMBRE
+        // =================================================
+
+        string nombreUsuario;
+
+        try
+        {
+            nombreUsuario =
+                _usernameService
+                    .Normalizar(
+                        dto.NombreUsuario
+                    );
+        }
+        catch (ArgumentException ex)
         {
             return BadRequest(new
             {
                 mensaje =
-                    "El nombre de usuario es obligatorio."
+                    ex.Message
             });
         }
 
@@ -542,6 +658,7 @@ public class UsuariosController : ControllerBase
         // =================================================
         // VALIDAR ROL DESTINO
         // =================================================
+
         var rol =
             await _context.Rol
                 .AsNoTracking()
@@ -552,6 +669,7 @@ public class UsuariosController : ControllerBase
                         r.Activo,
                     cancellationToken
                 );
+
 
         if (rol is null)
         {
@@ -566,10 +684,6 @@ public class UsuariosController : ControllerBase
         // =================================================
         // NOMBRE ÚNICO
         // =================================================
-        var nombreUsuario =
-            dto.NombreUsuario
-                .Trim()
-                .ToLowerInvariant();
 
         var nombreExiste =
             await _context.Usuario
@@ -581,6 +695,7 @@ public class UsuariosController : ControllerBase
                         nombreUsuario,
                     cancellationToken
                 );
+
 
         if (nombreExiste)
         {
@@ -595,10 +710,12 @@ public class UsuariosController : ControllerBase
         // =================================================
         // PROTEGER AL ÚLTIMO ADMINISTRADOR
         // =================================================
+
         var idRolAdministrador =
             await ObtenerIdRolAdministrador(
                 cancellationToken
             );
+
 
         if (
             idRolAdministrador.HasValue &&
@@ -610,6 +727,7 @@ public class UsuariosController : ControllerBase
                 dto.IdRol !=
                     idRolAdministrador.Value ||
                 !dto.Activo;
+
 
             if (dejaraDeSerAdministrador)
             {
@@ -626,6 +744,7 @@ public class UsuariosController : ControllerBase
                             cancellationToken
                         );
 
+
                 if (!existenOtrosAdministradores)
                 {
                     return BadRequest(new
@@ -641,18 +760,21 @@ public class UsuariosController : ControllerBase
         // =================================================
         // AUDITORÍA - ANTES
         // =================================================
-        var valorAnterior = new
-        {
-            usuario.IdUsuario,
-            usuario.IdRol,
-            usuario.NombreUsuario,
-            usuario.Activo
-        };
+
+        var valorAnterior =
+            new
+            {
+                usuario.IdUsuario,
+                usuario.IdRol,
+                usuario.NombreUsuario,
+                usuario.Activo
+            };
 
 
         // =================================================
         // ACTUALIZAR
         // =================================================
+
         usuario.IdRol =
             dto.IdRol;
 
@@ -666,25 +788,33 @@ public class UsuariosController : ControllerBase
             _fechaHoraService
                 .AhoraEcuador();
 
-        await _context.SaveChangesAsync(
-            cancellationToken
-        );
+
+        await _context
+            .SaveChangesAsync(
+                cancellationToken
+            );
 
 
         // =================================================
         // AUDITORÍA
         // =================================================
+
         await _auditoriaService
             .RegistrarAsync(
                 User,
+
                 accion:
                     "ACTUALIZAR_USUARIO",
+
                 entidad:
                     "Usuario",
+
                 idEntidad:
                     usuario.IdUsuario,
+
                 valorAnterior:
                     valorAnterior,
+
                 valorNuevo:
                     new
                     {
@@ -693,12 +823,20 @@ public class UsuariosController : ControllerBase
                         usuario.NombreUsuario,
                         usuario.Activo
                     },
+
                 ipOrigen:
                     HttpContext
                         .Connection
                         .RemoteIpAddress?
                         .ToString()
             );
+
+
+        _logger.LogInformation(
+            "Usuario {IdUsuario} actualizado correctamente.",
+            usuario.IdUsuario
+        );
+
 
         return Ok(new
         {
@@ -709,9 +847,9 @@ public class UsuariosController : ControllerBase
 
 
     // =====================================================
-    // PATCH:
-    // api/usuarios/1/estado?activo=false
+    // PATCH: api/usuarios/1/estado?activo=false
     // =====================================================
+
     [HttpPatch("{id:long}/estado")]
     public async Task<ActionResult>
         CambiarEstado(
@@ -728,6 +866,7 @@ public class UsuariosController : ControllerBase
                     cancellationToken
                 );
 
+
         if (usuario is null)
         {
             return NotFound(new
@@ -738,10 +877,10 @@ public class UsuariosController : ControllerBase
         }
 
 
-        // =================================================
-        // MISMO ESTADO
-        // =================================================
-        if (usuario.Activo == activo)
+        if (
+            usuario.Activo ==
+            activo
+        )
         {
             return Ok(new
             {
@@ -756,12 +895,14 @@ public class UsuariosController : ControllerBase
         // =================================================
         // PROTEGER ÚLTIMO ADMINISTRADOR
         // =================================================
+
         if (!activo)
         {
             var idRolAdministrador =
                 await ObtenerIdRolAdministrador(
                     cancellationToken
                 );
+
 
             if (
                 idRolAdministrador.HasValue &&
@@ -782,6 +923,7 @@ public class UsuariosController : ControllerBase
                             cancellationToken
                         );
 
+
                 if (!existenOtrosAdministradores)
                 {
                     return BadRequest(new
@@ -797,6 +939,7 @@ public class UsuariosController : ControllerBase
         var estadoAnterior =
             usuario.Activo;
 
+
         usuario.Activo =
             activo;
 
@@ -804,37 +947,53 @@ public class UsuariosController : ControllerBase
             _fechaHoraService
                 .AhoraEcuador();
 
-        await _context.SaveChangesAsync(
-            cancellationToken
-        );
+
+        await _context
+            .SaveChangesAsync(
+                cancellationToken
+            );
 
 
         await _auditoriaService
             .RegistrarAsync(
                 User,
+
                 accion:
                     "CAMBIAR_ESTADO_USUARIO",
+
                 entidad:
                     "Usuario",
+
                 idEntidad:
                     usuario.IdUsuario,
+
                 valorAnterior:
                     new
                     {
                         Activo =
                             estadoAnterior
                     },
+
                 valorNuevo:
                     new
                     {
                         usuario.Activo
                     },
+
                 ipOrigen:
                     HttpContext
                         .Connection
                         .RemoteIpAddress?
                         .ToString()
             );
+
+
+        _logger.LogInformation(
+            "Estado del usuario {IdUsuario} cambiado a {Activo}.",
+            usuario.IdUsuario,
+            activo
+        );
+
 
         return Ok(new
         {
@@ -847,9 +1006,9 @@ public class UsuariosController : ControllerBase
 
 
     // =====================================================
-    // POST:
-    // api/usuarios/1/reset-password
+    // POST: api/usuarios/1/reset-password
     // =====================================================
+
     [HttpPost("{id:long}/reset-password")]
     public async Task<ActionResult>
         ResetPassword(
@@ -858,8 +1017,21 @@ public class UsuariosController : ControllerBase
             ResetPasswordDto dto,
             CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(
-            dto.PasswordNuevo))
+        if (dto is null)
+        {
+            return BadRequest(new
+            {
+                mensaje =
+                    "La solicitud es inválida."
+            });
+        }
+
+
+        if (
+            string.IsNullOrWhiteSpace(
+                dto.PasswordNuevo
+            )
+        )
         {
             return BadRequest(new
             {
@@ -868,7 +1040,11 @@ public class UsuariosController : ControllerBase
             });
         }
 
-        if (dto.PasswordNuevo.Length < 8)
+
+        if (
+            dto.PasswordNuevo.Length <
+            8
+        )
         {
             return BadRequest(new
             {
@@ -876,6 +1052,7 @@ public class UsuariosController : ControllerBase
                     "La nueva contraseña debe tener al menos 8 caracteres."
             });
         }
+
 
         if (
             dto.PasswordNuevo !=
@@ -898,6 +1075,7 @@ public class UsuariosController : ControllerBase
                     cancellationToken
                 );
 
+
         if (usuario is null)
         {
             return NotFound(new
@@ -914,13 +1092,16 @@ public class UsuariosController : ControllerBase
                     dto.PasswordNuevo
                 );
 
+
         usuario.FechaModificacion =
             _fechaHoraService
                 .AhoraEcuador();
 
-        await _context.SaveChangesAsync(
-            cancellationToken
-        );
+
+        await _context
+            .SaveChangesAsync(
+                cancellationToken
+            );
 
 
         /*
@@ -932,31 +1113,46 @@ public class UsuariosController : ControllerBase
          *
          * dentro de auditoría.
          */
+
         await _auditoriaService
             .RegistrarAsync(
                 User,
+
                 accion:
                     "RESET_PASSWORD",
+
                 entidad:
                     "Usuario",
+
                 idEntidad:
                     usuario.IdUsuario,
+
                 valorAnterior:
                     null,
+
                 valorNuevo:
                     new
                     {
                         usuario.IdUsuario,
                         usuario.NombreUsuario,
+
                         PasswordReseteado =
                             true
                     },
+
                 ipOrigen:
                     HttpContext
                         .Connection
                         .RemoteIpAddress?
                         .ToString()
             );
+
+
+        _logger.LogInformation(
+            "Contraseña del usuario {IdUsuario} restablecida.",
+            usuario.IdUsuario
+        );
+
 
         return Ok(new
         {
@@ -969,6 +1165,7 @@ public class UsuariosController : ControllerBase
     // =====================================================
     // OBTENER ID DEL ROL ADMINISTRADOR
     // =====================================================
+
     private async Task<long?>
         ObtenerIdRolAdministrador(
             CancellationToken cancellationToken)

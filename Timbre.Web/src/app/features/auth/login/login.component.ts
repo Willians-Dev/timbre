@@ -1,5 +1,6 @@
 import {
-  Component
+  Component,
+  signal
 } from '@angular/core';
 
 import {
@@ -11,8 +12,13 @@ import {
 } from '@angular/forms';
 
 import {
-  Router
+  Router,
+  RouterLink
 } from '@angular/router';
+
+import {
+  finalize
+} from 'rxjs';
 
 import {
   AuthService
@@ -32,7 +38,8 @@ import {
 
   imports: [
     CommonModule,
-    FormsModule
+    FormsModule,
+    RouterLink
   ],
 
   templateUrl:
@@ -59,12 +66,28 @@ export class LoginComponent {
   // ESTADO
   // =====================================================
 
-  cargando =
-    false;
+  readonly cargando =
+    signal(
+      false
+    );
 
 
-  mensajeError =
-    '';
+  readonly mensajeError =
+    signal(
+      ''
+    );
+
+
+  readonly intentoEnviar =
+    signal(
+      false
+    );
+
+
+  readonly mostrarPassword =
+    signal(
+      false
+    );
 
 
   constructor(
@@ -83,28 +106,87 @@ export class LoginComponent {
 
 
   // =====================================================
+  // MOSTRAR / OCULTAR CONTRASEÑA
+  // =====================================================
+
+  alternarPassword():
+    void {
+
+    this.mostrarPassword.update(
+      valor =>
+        !valor
+    );
+
+  }
+
+
+  // =====================================================
+  // LIMPIAR ERROR AL ESCRIBIR
+  // =====================================================
+
+  limpiarError():
+    void {
+
+    if (
+      this.mensajeError()
+    ) {
+
+      this.mensajeError.set(
+        ''
+      );
+
+    }
+
+  }
+
+
+  // =====================================================
   // INGRESAR
   // =====================================================
 
   ingresar():
     void {
 
-    this.mensajeError =
-      '';
-
-
     // ===================================================
-    // VALIDACIONES
+    // EVITAR DOBLE ENVÍO
     // ===================================================
 
     if (
-      !this.nombreUsuario
-        .trim() ||
+      this.cargando()
+    ) {
+
+      return;
+
+    }
+
+
+    this.intentoEnviar.set(
+      true
+    );
+
+
+    this.mensajeError.set(
+      ''
+    );
+
+
+    const usuario =
+      this.nombreUsuario
+        .trim();
+
+
+    // ===================================================
+    // VALIDACIONES DEL FORMULARIO
+    // ===================================================
+
+    if (
+      !usuario ||
       !this.password
     ) {
 
-      this.mensajeError =
-        'Ingrese usuario y contraseña.';
+      this.mensajeError.set(
+        'Complete el usuario y la contraseña para continuar.'
+      );
 
 
       return;
@@ -116,21 +198,34 @@ export class LoginComponent {
     // LOGIN
     // ===================================================
 
-    this.cargando =
-      true;
+    this.cargando.set(
+      true
+    );
 
 
     this.authService
       .login({
 
         nombreUsuario:
-          this.nombreUsuario
-            .trim(),
+          usuario,
 
         password:
           this.password
 
       })
+      .pipe(
+
+        finalize(
+          () => {
+
+            this.cargando.set(
+              false
+            );
+
+          }
+        )
+
+      )
       .subscribe({
 
         // =================================================
@@ -140,17 +235,20 @@ export class LoginComponent {
         next:
           () => {
 
-            this.cargando =
-              false;
+            this.intentoEnviar.set(
+              false
+            );
+
+
+            this.mensajeError.set(
+              ''
+            );
 
 
             this.notificationService
               .success(
-
                 'Inicio de sesión realizado correctamente.',
-
                 'Bienvenido'
-
               );
 
 
@@ -160,32 +258,115 @@ export class LoginComponent {
 
 
         // =================================================
-        // ERROR LOGIN
+        // LOGIN INCORRECTO / ERROR
         // =================================================
 
         error:
           error => {
 
-            this.cargando =
-              false;
+            let mensaje:
+              string;
 
 
-            const mensaje =
-              error?.error?.mensaje ??
-              'No fue posible iniciar sesión.';
+            // =============================================
+            // CREDENCIALES INCORRECTAS
+            //
+            // No revelamos si falló:
+            // - usuario
+            // - contraseña
+            //
+            // Evita enumeración de usuarios.
+            // =============================================
+
+            if (
+              error?.status ===
+              401
+            ) {
+
+              mensaje =
+                'Usuario o contraseña incorrectos.';
+
+            }
 
 
-            this.mensajeError =
-              mensaje;
+            // =============================================
+            // SIN CONEXIÓN CON API
+            // =============================================
 
+            else if (
+              error?.status ===
+              0
+            ) {
+
+              mensaje =
+                'No fue posible comunicarse con el servidor.';
+
+            }
+
+
+            // =============================================
+            // OTROS ERRORES
+            // =============================================
+
+            else {
+
+              mensaje =
+                error?.error?.mensaje ??
+                'No fue posible iniciar sesión. Intente nuevamente.';
+
+            }
+
+
+            // =============================================
+            // MOSTRAR MENSAJE
+            // =============================================
+
+            this.mensajeError.set(
+              mensaje
+            );
+
+
+            // =============================================
+            // LIMPIAR SOLO CONTRASEÑA
+            //
+            // Conservamos el nombre de usuario para
+            // facilitar un nuevo intento.
+            // =============================================
+
+            this.password =
+              '';
+
+
+            this.mostrarPassword.set(
+              false
+            );
+
+
+            // =============================================
+            // IMPORTANTE
+            //
+            // Evita que inmediatamente aparezca:
+            //
+            // "La contraseña es obligatoria."
+            //
+            // Esa validación se mostrará nuevamente
+            // solo si el usuario pulsa Ingresar con
+            // el campo vacío.
+            // =============================================
+
+            this.intentoEnviar.set(
+              false
+            );
+
+
+            // =============================================
+            // NOTIFICACIÓN
+            // =============================================
 
             this.notificationService
               .error(
-
                 mensaje,
-
                 'No se pudo iniciar sesión'
-
               );
 
           }
@@ -259,17 +440,19 @@ export class LoginComponent {
       .logout();
 
 
-    this.mensajeError =
+    const mensaje =
       'El usuario no tiene un rol autorizado para ingresar al sistema.';
+
+
+    this.mensajeError.set(
+      mensaje
+    );
 
 
     this.notificationService
       .error(
-
-        this.mensajeError,
-
+        mensaje,
         'Acceso no autorizado'
-
       );
 
   }

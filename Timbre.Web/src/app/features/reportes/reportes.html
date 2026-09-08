@@ -1,0 +1,594 @@
+<section class="page">
+
+  <!-- =================================================
+       HEADER
+  ================================================== -->
+
+  <div class="page-header">
+
+    <div>
+
+      <span class="eyebrow">
+        ASISTENCIA
+      </span>
+
+      <h1>
+        Reportes
+      </h1>
+
+      <p>
+        Genere reportes de asistencia en
+        Excel o PDF.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- =================================================
+       TIPOS DE REPORTE
+  ================================================== -->
+
+  <section class="report-types">
+
+    <button
+      type="button"
+      class="report-card"
+      [class.active]="
+        tipoReporte() ===
+        'asistencia'
+      "
+      [disabled]="descargando()"
+      (click)="
+        seleccionarTipo(
+          'asistencia'
+        )
+      ">
+
+      <span class="report-icon">
+        ▤
+      </span>
+
+
+      <span class="report-content">
+
+        <strong>
+          Asistencia por período
+        </strong>
+
+        <small>
+          Consolidado diario por empleado.
+        </small>
+
+      </span>
+
+    </button>
+
+
+    <button
+      type="button"
+      class="report-card"
+      [class.active]="
+        tipoReporte() ===
+        'atrasos'
+      "
+      [disabled]="descargando()"
+      (click)="
+        seleccionarTipo(
+          'atrasos'
+        )
+      ">
+
+      <span class="report-icon">
+        ◷
+      </span>
+
+
+      <span class="report-content">
+
+        <strong>
+          Atrasos
+        </strong>
+
+        <small>
+          Entradas registradas fuera de horario.
+        </small>
+
+      </span>
+
+    </button>
+
+
+    <button
+      type="button"
+      class="report-card"
+      [class.active]="
+        tipoReporte() ===
+        'incompletas'
+      "
+      [disabled]="descargando()"
+      (click)="
+        seleccionarTipo(
+          'incompletas'
+        )
+      ">
+
+      <span class="report-icon">
+        !
+      </span>
+
+
+      <span class="report-content">
+
+        <strong>
+          Jornadas incompletas
+        </strong>
+
+        <small>
+          Jornadas con marcaciones pendientes.
+        </small>
+
+      </span>
+
+    </button>
+
+
+    <button
+      type="button"
+      class="report-card"
+      [class.active]="
+        tipoReporte() ===
+        'marcaciones'
+      "
+      [disabled]="descargando()"
+      (click)="
+        seleccionarTipo(
+          'marcaciones'
+        )
+      ">
+
+      <span class="report-icon">
+        ≡
+      </span>
+
+
+      <span class="report-content">
+
+        <strong>
+          Marcaciones detalladas
+        </strong>
+
+        <small>
+          Registro individual de cada marcación.
+        </small>
+
+      </span>
+
+    </button>
+
+  </section>
+
+
+  <!-- =================================================
+       CUERPO
+  ================================================== -->
+
+  <div class="content-grid">
+
+    <!-- ===============================================
+         CONFIGURACIÓN
+    ================================================ -->
+
+    <section class="filters-card">
+
+      <div class="section-heading">
+
+        <span class="section-label">
+          CONFIGURACIÓN
+        </span>
+
+
+        <h2>
+          {{ nombreReporte() }}
+        </h2>
+
+
+        <p>
+          {{ descripcionReporte() }}
+        </p>
+
+      </div>
+
+
+      <!-- =============================================
+           FILTROS
+      ============================================== -->
+
+      <div class="filters-grid">
+
+        <div class="field">
+
+          <label>
+            Desde
+          </label>
+
+          <input
+            type="date"
+            [disabled]="descargando()"
+            [ngModel]="fechaDesde()"
+            (ngModelChange)="
+              fechaDesde.set($event)
+            ">
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Hasta
+          </label>
+
+          <input
+            type="date"
+            [disabled]="descargando()"
+            [ngModel]="fechaHasta()"
+            (ngModelChange)="
+              fechaHasta.set($event)
+            ">
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Empleado
+          </label>
+
+          <select
+            [disabled]="
+              cargandoFiltros() ||
+              descargando()
+            "
+            [ngModel]="idEmpleado()"
+            (ngModelChange)="
+              idEmpleado.set(
+                $event
+                  ? +$event
+                  : null
+              )
+            ">
+
+            <option
+              [ngValue]="null">
+
+              Todos
+
+            </option>
+
+
+            @for (
+              empleado
+              of empleados();
+              track empleado.idEmpleado
+            ) {
+
+              <option
+                [ngValue]="
+                  empleado.idEmpleado
+                ">
+
+                {{ empleado.nombre }}
+
+              </option>
+
+            }
+
+          </select>
+
+        </div>
+
+
+        <div class="field">
+
+          <label>
+            Área
+          </label>
+
+          <select
+            [disabled]="
+              cargandoFiltros() ||
+              descargando()
+            "
+            [ngModel]="area()"
+            (ngModelChange)="
+              area.set($event)
+            ">
+
+            <option value="">
+              Todas
+            </option>
+
+
+            @for (
+              item
+              of areas();
+              track item
+            ) {
+
+              <option
+                [value]="item">
+
+                {{ item }}
+
+              </option>
+
+            }
+
+          </select>
+
+        </div>
+
+
+        @if (
+          tipoReporte() ===
+          'marcaciones'
+        ) {
+
+          <div class="field">
+
+            <label>
+              Origen
+            </label>
+
+            <select
+              [disabled]="descargando()"
+              [ngModel]="origen()"
+              (ngModelChange)="
+                origen.set($event)
+              ">
+
+              <option value="">
+                Todos
+              </option>
+
+              <option value="Facial">
+                Facial
+              </option>
+
+              <option value="Manual">
+                Manual
+              </option>
+
+              <option value="Mixto">
+                Mixto
+              </option>
+
+            </select>
+
+          </div>
+
+        }
+
+      </div>
+
+
+      <!-- =============================================
+           ACCIONES
+      ============================================== -->
+
+      <div class="filter-actions">
+
+        <button
+          type="button"
+          class="btn-secondary"
+          [disabled]="descargando()"
+          (click)="limpiarFiltros()">
+
+          Limpiar filtros
+
+        </button>
+
+
+        <button
+          type="button"
+          class="btn-pdf"
+          [disabled]="descargando()"
+          (click)="descargarPdf()">
+
+          @if (
+            formatoDescargando() ===
+            'pdf'
+          ) {
+
+            <span class="spinner">
+            </span>
+
+            Generando PDF...
+
+          }
+          @else {
+
+            PDF
+
+          }
+
+        </button>
+
+
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="descargando()"
+          (click)="descargarExcel()">
+
+          @if (
+            formatoDescargando() ===
+            'excel'
+          ) {
+
+            <span class="spinner light">
+            </span>
+
+            Generando Excel...
+
+          }
+          @else {
+
+            Excel
+
+          }
+
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===============================================
+         RESUMEN
+    ================================================ -->
+
+    <aside class="summary-card">
+
+      <div class="summary-format">
+
+        <span class="format-chip excel">
+          XLSX
+        </span>
+
+        <span class="format-chip pdf">
+          PDF
+        </span>
+
+      </div>
+
+
+      <span class="section-label">
+        ARCHIVO
+      </span>
+
+
+      <h3>
+        {{ nombreReporte() }}
+      </h3>
+
+
+      <p>
+        El archivo se generará utilizando
+        los filtros seleccionados.
+      </p>
+
+
+      <div class="summary-row">
+
+        <span>
+          Desde
+        </span>
+
+        <strong>
+          {{ fechaDesde() }}
+        </strong>
+
+      </div>
+
+
+      <div class="summary-row">
+
+        <span>
+          Hasta
+        </span>
+
+        <strong>
+          {{ fechaHasta() }}
+        </strong>
+
+      </div>
+
+
+      <div class="summary-row">
+
+        <span>
+          Empleado
+        </span>
+
+        <strong>
+          {{ empleadoSeleccionado() }}
+        </strong>
+
+      </div>
+
+
+      <div class="summary-row">
+
+        <span>
+          Área
+        </span>
+
+        <strong>
+          {{
+            area() ||
+            'Todas'
+          }}
+        </strong>
+
+      </div>
+
+
+      @if (
+        tipoReporte() ===
+        'marcaciones'
+      ) {
+
+        <div class="summary-row">
+
+          <span>
+            Origen
+          </span>
+
+          <strong>
+            {{
+              origen() ||
+              'Todos'
+            }}
+          </strong>
+
+        </div>
+
+      }
+
+
+      <div class="summary-row">
+
+        <span>
+          Formatos
+        </span>
+
+        <strong>
+          Excel / PDF
+        </strong>
+
+      </div>
+
+
+      <div class="summary-note">
+
+        <strong>
+          Información
+        </strong>
+
+        <p>
+          Los resultados utilizan la misma lógica
+          del historial administrativo.
+        </p>
+
+      </div>
+
+    </aside>
+
+  </div>
+
+</section>
